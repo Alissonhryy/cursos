@@ -6,39 +6,40 @@
   <title>Dashboard - Gestão de Cursos Profissionalizantes</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <!-- Firebase SDK -->
   <script type="module">
-    // Configuração do Firebase
+    // Configuração do Firebase Realtime Database
     const firebaseConfig = {
-      apiKey: "AIzaSyCM_Rsyp70C4u3OtOLz7SN3fBwz-m5Ii8Q",
-      authDomain: "cursos-84a11.firebaseapp.com",
-      projectId: "cursos-84a11",
-      storageBucket: "cursos-84a11.firebasestorage.app",
-      messagingSenderId: "43991037761",
-      appId: "1:43991037761:web:a6d3ba956770d3182fd3c0",
-      measurementId: "G-BS1Z6FJ1JZ"
+      apiKey: "AIzaSyAt-qz3cYHSdlRJkdnFo-nSrby_RbWbZMg",
+      authDomain: "cursos-17733.firebaseapp.com",
+      databaseURL: "https://cursos-17733-default-rtdb.firebaseio.com",
+      projectId: "cursos-17733",
+      storageBucket: "cursos-17733.firebasestorage.app",
+      messagingSenderId: "861985250392",
+      appId: "1:861985250392:web:7ac717acbd678b0684be2d",
+      measurementId: "G-F2WLBYMHW8"
     };
 
     // Load Firebase modules
     Promise.all([
       import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js'),
       import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js'),
-      import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js')
-    ]).then(([firebaseApp, firebaseAuth, firebaseFirestore]) => {
+      import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js')
+    ]).then(([firebaseApp, firebaseAuth, firebaseDatabase]) => {
       // Initialize Firebase
       window.firebaseApp = firebaseApp.initializeApp(firebaseConfig);
       window.firebaseAuth = firebaseAuth.getAuth(window.firebaseApp);
-      window.firestore = firebaseFirestore.getFirestore(window.firebaseApp);
+      window.database = firebaseDatabase.getDatabase(window.firebaseApp);
       window.firebaseModules = {
         signInWithEmailAndPassword: firebaseAuth.signInWithEmailAndPassword,
         signOut: firebaseAuth.signOut,
         onAuthStateChanged: firebaseAuth.onAuthStateChanged,
-        collection: firebaseFirestore.collection,
-        doc: firebaseFirestore.doc,
-        getDoc: firebaseFirestore.getDoc,
-        setDoc: firebaseFirestore.setDoc,
-        onSnapshot: firebaseFirestore.onSnapshot,
-        updateDoc: firebaseFirestore.updateDoc
+        ref: firebaseDatabase.ref,
+        get: firebaseDatabase.get,
+        set: firebaseDatabase.set,
+        onValue: firebaseDatabase.onValue,
+        off: firebaseDatabase.off
       };
       
       // Trigger ready event
@@ -72,14 +73,114 @@
     }
   </script>
   <style>
-    body { background-color: #0a0f1a; color: #f8fafc; }
-    .modal-overlay { background: rgba(0,0,0,0.7); }
-    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
-    .scrollbar-thin::-webkit-scrollbar-track { background: #1e293b; }
-    .scrollbar-thin::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 3px; }
+    body { 
+      background: linear-gradient(135deg, #0a0f1a 0%, #111827 100%);
+      color: #f8fafc; 
+      min-height: 100vh;
+    }
+    .modal-overlay { 
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+    }
+    /* Elegant Scrollbar */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { 
+      background: rgba(30, 41, 59, 0.3);
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb { 
+      background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+      border-radius: 10px;
+      border: 2px solid rgba(30, 41, 59, 0.3);
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+    }
+    ::-webkit-scrollbar-thumb:hover { 
+      background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+    }
+    .scrollbar-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+    .scrollbar-thin::-webkit-scrollbar-track { 
+      background: rgba(30, 41, 59, 0.2);
+      border-radius: 10px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-thumb { 
+      background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+      border-radius: 10px;
+      border: 1px solid rgba(30, 41, 59, 0.3);
+      box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+    }
     select option { background: #111827; color: #f8fafc; }
-    .tab-btn { transition: all 0.2s; }
-    .tab-btn.active { border-color: #3b82f6; color: #3b82f6; }
+    .tab-btn { transition: all 0.3s ease; }
+    .tab-btn.active { 
+      border-color: #3b82f6; 
+      color: #3b82f6;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+    }
+    /* Glow effects */
+    .glow-border {
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.1), inset 0 0 15px rgba(59, 130, 246, 0.05);
+    }
+    .glow-border:hover {
+      border-color: rgba(59, 130, 246, 0.5);
+      box-shadow: 0 0 25px rgba(59, 130, 246, 0.2), inset 0 0 20px rgba(59, 130, 246, 0.1);
+    }
+    /* Card styling */
+    .card-elegant {
+      background: rgba(17, 24, 39, 0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(59, 130, 246, 0.1);
+    }
+    /* Header fixo */
+    .header-fixed {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+    /* Header quando modal está aberto */
+    body.modal-open .header-fixed {
+      background: rgba(10, 15, 26, 0.95);
+      backdrop-filter: blur(10px);
+      opacity: 0.7;
+    }
+    /* Alerta de cursos pendentes */
+    .alert-pending {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.15) 100%);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1);
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(4px);
+      transition: all 0.3s ease;
+    }
+    .alert-pending:hover {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.2) 100%);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+      transform: translateY(-1px);
+    }
+    .alert-pending .pending-count {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-weight: 700;
+      font-size: 10px;
+      min-width: 20px;
+      text-align: center;
+    }
   </style>
 </head>
 <body class="min-h-screen">
@@ -92,17 +193,17 @@
   </div>
 
   <!-- Login Modal -->
-  <div id="login-modal" class="fixed inset-0 z-50 hidden">
+  <div id="login-modal" class="fixed inset-0 z-[1100] hidden">
     <div class="modal-overlay absolute inset-0" onclick="closeLoginModal()"></div>
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-card border border-border rounded-lg shadow-xl overflow-hidden">
-      <div class="p-6">
-        <div class="text-center mb-6">
-          <div class="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md card-elegant rounded-2xl shadow-2xl overflow-hidden">
+      <div class="p-8">
+        <div class="text-center mb-8">
+          <div class="w-20 h-20 bg-gradient-to-br from-primary to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/30">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <h2 class="text-2xl font-bold text-foreground mb-2">Login Administrativo</h2>
+          <h2 class="text-3xl font-bold text-foreground mb-3 bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">Login Administrativo</h2>
           <p class="text-sm text-muted-foreground">Faça login para acessar funções administrativas</p>
         </div>
         <div class="space-y-4">
@@ -122,7 +223,7 @@
             <input type="checkbox" id="remember-login" class="w-4 h-4 text-primary bg-input border-border rounded focus:ring-primary">
             <label for="remember-login" class="ml-2 text-sm text-muted-foreground">Manter-me logado</label>
           </div>
-          <button onclick="handleLogin()" class="w-full bg-primary hover:bg-primary/90 text-white px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium">
+          <button onclick="handleLogin()" class="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary text-white px-4 py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transform hover:-translate-y-0.5">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
             </svg>
@@ -136,7 +237,7 @@
 
   <div id="app" class="hidden">
     <!-- Header -->
-    <header class="border-b border-border bg-card sticky top-0 z-40">
+    <header class="header-fixed border-b border-border">
       <div class="container mx-auto px-4 py-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
@@ -201,7 +302,7 @@
       <div id="stats-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
 
       <!-- Filters -->
-      <div class="bg-card border border-border rounded-lg p-4">
+      <div class="card-elegant rounded-2xl p-4">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label class="block text-sm font-medium text-muted-foreground mb-2">Buscar Tipologia</label>
@@ -234,7 +335,7 @@
       </div>
 
       <!-- Lot Sections -->
-      <div id="lot-sections" class="space-y-4"></div>
+      <div id="lot-sections" class="space-y-6"></div>
     </main>
 
     <!-- Settings Tab Content -->
@@ -326,7 +427,7 @@
   </div>
 
   <!-- Import Modal -->
-  <div id="import-modal" class="fixed inset-0 z-50 hidden">
+  <div id="import-modal" class="fixed inset-0 z-[1100] hidden">
     <div class="modal-overlay absolute inset-0" onclick="closeImportModal()"></div>
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl max-h-[90vh] bg-card border border-border rounded-lg shadow-xl overflow-hidden">
       <div class="flex items-center justify-between p-4 border-b border-border">
@@ -402,7 +503,7 @@
   </div>
 
   <!-- Responsibles Modal -->
-  <div id="responsibles-modal" class="fixed inset-0 z-50 hidden">
+  <div id="responsibles-modal" class="fixed inset-0 z-[1100] hidden">
     <div class="modal-overlay absolute inset-0" onclick="closeResponsiblesModal()"></div>
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg max-h-[90vh] bg-card border border-border rounded-lg shadow-xl overflow-hidden">
       <div class="flex items-center justify-between p-4 border-b border-border">
@@ -458,7 +559,7 @@
   </div>
 
   <!-- Restore Backup Modal -->
-  <div id="restore-modal" class="fixed inset-0 z-50 hidden">
+  <div id="restore-modal" class="fixed inset-0 z-[1100] hidden">
     <div class="modal-overlay absolute inset-0" onclick="closeRestoreModal()"></div>
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-card border border-border rounded-lg shadow-xl overflow-hidden">
       <div class="flex items-center justify-between p-4 border-b border-border">
@@ -517,7 +618,7 @@
   </div>
 
   <!-- Add Course Modal -->
-  <div id="add-course-modal" class="fixed inset-0 z-50 hidden">
+  <div id="add-course-modal" class="fixed inset-0 z-[1100] hidden">
     <div class="modal-overlay absolute inset-0" onclick="closeAddCourseModal(event)"></div>
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg max-h-[90vh] bg-card border border-border rounded-lg shadow-xl overflow-hidden">
       <div class="flex items-center justify-between p-4 border-b border-border">
@@ -602,6 +703,109 @@
     </div>
   </div>
 
+  <!-- Edit Course Modal -->
+  <div id="edit-course-modal" class="fixed inset-0 z-[1100] hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeEditCourseModal(event)"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl max-h-[90vh] card-elegant rounded-2xl shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between p-6 border-b border-border/30">
+        <div>
+          <h2 class="text-2xl font-semibold text-foreground">Detalhes do Curso</h2>
+          <p class="text-sm text-muted-foreground mt-1">Visualize e edite as informações do curso</p>
+        </div>
+        <button onclick="closeEditCourseModal()" class="p-2 hover:bg-secondary/50 rounded-lg transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto max-h-[70vh] scrollbar-thin space-y-6">
+        <!-- Informações do Curso (Somente Leitura) -->
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">ID do Curso</label>
+              <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground font-mono text-sm" id="edit-course-id">-</div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Tipologia</label>
+              <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground" id="edit-course-tipologia">-</div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Carga Horária</label>
+              <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground" id="edit-course-carga">-</div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Lote</label>
+              <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground" id="edit-course-lote">-</div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Município</label>
+              <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground" id="edit-course-municipio">-</div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Cozinha</label>
+              <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground" id="edit-course-cozinha">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campos Editáveis (Apenas para usuários logados) -->
+        <div id="edit-course-editable-section" class="border-t border-border/30 pt-6 hidden">
+          <h3 class="text-lg font-semibold text-foreground mb-4">Editar Informações</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Data Início *</label>
+              <input type="date" id="edit-course-inicio" 
+                class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Data Fim *</label>
+              <input type="date" id="edit-course-fim" 
+                class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mt-4">
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Status *</label>
+              <select id="edit-course-status" class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                <option value="Pendente">Pendente</option>
+                <option value="Em andamento">Em andamento</option>
+                <option value="Concluído">Concluído</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Concludentes</label>
+              <input type="number" id="edit-course-concludentes" placeholder="Ex: 30" 
+                class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            </div>
+          </div>
+        </div>
+
+        <div id="edit-course-actions" class="flex justify-end gap-3 pt-4 border-t border-border/30 hidden">
+          <button onclick="closeEditCourseModal()" class="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-secondary/50 transition-colors">
+            Cancelar
+          </button>
+          <button onclick="saveEditedCourse()" class="px-4 py-2 bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary text-white rounded-lg transition-all duration-300 flex items-center gap-2 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Salvar Alterações
+          </button>
+        </div>
+        
+        <div id="edit-course-view-only" class="flex justify-end gap-3 pt-4 border-t border-border/30">
+          <button onclick="closeEditCourseModal()" class="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-secondary/50 transition-colors">
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     
     const STORAGE_KEY_COURSES = 'dashboard_courses';
@@ -614,6 +818,7 @@
     let dataMigrationDone = false;
     
     let currentEditLot = null;
+    let currentEditCourse = null;
     let uploadedData = [];
     let fileColumns = [];
     let columnMapping = {};
@@ -635,50 +840,41 @@
       cozinha: 'Cozinha'
     };
 
-    async function saveToFirestore() {
+    async function saveToRealtimeDatabase() {
       if (isUpdatingFromListener) {
         console.log('Ignorando salvamento - atualização vinda do listener');
         return; // Prevent infinite loop
       }
       
-      if (!window.firestore || !window.firebaseModules) {
-        console.warn('Firestore não disponível, usando localStorage como fallback');
+      if (!window.database || !window.firebaseModules) {
+        console.warn('Realtime Database não disponível, usando localStorage como fallback');
         localStorage.setItem(STORAGE_KEY_COURSES, JSON.stringify(courses));
         localStorage.setItem(STORAGE_KEY_RESPONSIBLES, JSON.stringify(lotResponsibles));
         return;
       }
 
       try {
-        const db = window.firestore;
-        const { doc, setDoc } = window.firebaseModules;
+        const db = window.database;
+        const { ref, set } = window.firebaseModules;
         
-        console.log('Salvando no Firestore...', { courses: courses.length, responsibles: Object.keys(lotResponsibles).length });
+        console.log('Salvando no Realtime Database...', { courses: courses.length, responsibles: Object.keys(lotResponsibles).length });
         
         // Save courses
-        await setDoc(doc(db, 'dashboard', 'courses'), { 
-          data: courses,
-          updatedAt: new Date().toISOString()
-        }, { merge: false });
-        console.log('Cursos salvos no Firestore com sucesso');
+        await set(ref(db, 'courses'), courses);
+        console.log('Cursos salvos no Realtime Database com sucesso');
         
         // Save responsibles
-        await setDoc(doc(db, 'dashboard', 'responsibles'), { 
-          data: lotResponsibles,
-          updatedAt: new Date().toISOString()
-        }, { merge: false });
-        console.log('Responsáveis salvos no Firestore com sucesso');
+        await set(ref(db, 'responsibles'), lotResponsibles);
+        console.log('Responsáveis salvos no Realtime Database com sucesso');
+        
+        // Update last sync timestamp
+        await set(ref(db, 'lastSync'), new Date().toISOString());
       } catch (error) {
-        console.error('Erro ao salvar no Firestore:', error);
-        console.error('Detalhes do erro:', {
-          code: error.code,
-          message: error.message,
-          firestoreAvailable: !!window.firestore,
-          modulesAvailable: !!window.firebaseModules
-        });
+        console.error('Erro ao salvar no Realtime Database:', error);
         
         // Show user-friendly error
-        if (error.code === 'permission-denied') {
-          alert('Erro de permissão no Firestore. Verifique as regras de segurança do Firestore no Firebase Console.');
+        if (error.code === 'PERMISSION_DENIED') {
+          alert('Erro de permissão no Realtime Database. Verifique as regras de segurança no Firebase Console.');
         }
         
         // Fallback to localStorage
@@ -689,10 +885,10 @@
 
     // Alias for compatibility - make sure to await this when needed
     async function saveToStorage() {
-      await saveToFirestore();
+      await saveToRealtimeDatabase();
     }
 
-    async function loadFromFirestore() {
+    async function loadFromRealtimeDatabase() {
       // Always load from localStorage first (as fallback)
       const localCourses = JSON.parse(localStorage.getItem(STORAGE_KEY_COURSES)) || [];
       const localResponsibles = JSON.parse(localStorage.getItem(STORAGE_KEY_RESPONSIBLES)) || {};
@@ -700,76 +896,67 @@
       lotResponsibles = localResponsibles;
       filteredCourses = [...courses];
       
-      if (!window.firestore || !window.firebaseModules) {
-        console.warn('Firestore não disponível, usando localStorage');
+      if (!window.database || !window.firebaseModules) {
+        console.warn('Realtime Database não disponível, usando localStorage');
         renderAll();
         return;
       }
 
       try {
-        const db = window.firestore;
-        const { doc, getDoc } = window.firebaseModules;
+        const db = window.database;
+        const { ref, get } = window.firebaseModules;
         
-        // Try to load courses from Firestore with timeout
-        const coursesPromise = getDoc(doc(db, 'dashboard', 'courses'));
+        // Try to load courses from Realtime Database with timeout
+        const coursesPromise = get(ref(db, 'courses'));
         const coursesTimeout = new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Timeout ao carregar cursos')), 10000)
         );
         
-        const coursesDoc = await Promise.race([coursesPromise, coursesTimeout]);
+        const coursesSnapshot = await Promise.race([coursesPromise, coursesTimeout]);
         
-        if (coursesDoc.exists()) {
-          const firestoreCourses = coursesDoc.data().data || [];
-          if (firestoreCourses.length > 0) {
-            courses = firestoreCourses;
+        if (coursesSnapshot.exists()) {
+          const dbCourses = coursesSnapshot.val() || [];
+          if (Array.isArray(dbCourses) && dbCourses.length > 0) {
+            courses = dbCourses;
             // Update localStorage as backup
             localStorage.setItem(STORAGE_KEY_COURSES, JSON.stringify(courses));
           }
         } else {
-          // No data in Firestore, migrate from localStorage if exists
+          // No data in Realtime Database, migrate from localStorage if exists
           if (localCourses.length > 0 && !dataMigrationDone) {
-            console.log('Migrando dados do localStorage para Firestore...');
-            await saveToFirestore();
+            console.log('Migrando dados do localStorage para Realtime Database...');
+            await saveToRealtimeDatabase();
             dataMigrationDone = true;
           }
         }
         
-        // Try to load responsibles from Firestore with timeout
-        const responsiblesPromise = getDoc(doc(db, 'dashboard', 'responsibles'));
+        // Try to load responsibles from Realtime Database with timeout
+        const responsiblesPromise = get(ref(db, 'responsibles'));
         const responsiblesTimeout = new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Timeout ao carregar responsáveis')), 10000)
         );
         
-        const responsiblesDoc = await Promise.race([responsiblesPromise, responsiblesTimeout]);
+        const responsiblesSnapshot = await Promise.race([responsiblesPromise, responsiblesTimeout]);
         
-        if (responsiblesDoc.exists()) {
-          const firestoreResponsibles = responsiblesDoc.data().data || {};
-          if (Object.keys(firestoreResponsibles).length > 0) {
-            lotResponsibles = firestoreResponsibles;
+        if (responsiblesSnapshot.exists()) {
+          const dbResponsibles = responsiblesSnapshot.val() || {};
+          if (Object.keys(dbResponsibles).length > 0) {
+            lotResponsibles = dbResponsibles;
             // Update localStorage as backup
             localStorage.setItem(STORAGE_KEY_RESPONSIBLES, JSON.stringify(lotResponsibles));
           }
         } else {
-          // No data in Firestore, migrate from localStorage if exists
+          // No data in Realtime Database, migrate from localStorage if exists
           if (Object.keys(localResponsibles).length > 0 && !dataMigrationDone) {
-            await saveToFirestore();
+            await saveToRealtimeDatabase();
             dataMigrationDone = true;
           }
         }
         
         filteredCourses = [...courses];
-        console.log('✅ Dados carregados do Firestore com sucesso');
+        console.log('✅ Dados carregados do Realtime Database com sucesso');
       } catch (error) {
-        console.warn('⚠️ Erro ao carregar do Firestore (usando localStorage):', error.code || error.message);
-        
-        // If error is not-found or permission-denied, show specific message
-        if (error.code === 'not-found') {
-          console.warn('Firestore database não encontrado. Usando localStorage. Crie o banco de dados no Firebase Console.');
-        } else if (error.code === 'permission-denied') {
-          console.warn('Permissão negada no Firestore. Verifique as regras de segurança. Usando localStorage.');
-        } else if (error.message && error.message.includes('Timeout')) {
-          console.warn('Timeout ao carregar do Firestore. Usando localStorage.');
-        }
+        console.warn('⚠️ Erro ao carregar do Realtime Database (usando localStorage):', error.code || error.message);
         
         // Keep using localStorage data (already loaded above)
       }
@@ -780,81 +967,83 @@
     let isUpdatingFromListener = false;
 
     function setupRealtimeListeners() {
-      if (!window.firestore || !window.firebaseModules) {
+      if (!window.database || !window.firebaseModules) {
         // Fallback to localStorage sync (manual refresh needed)
-        console.warn('Firestore não disponível, sincronização em tempo real desabilitada');
+        console.warn('Realtime Database não disponível, sincronização em tempo real desabilitada');
         return;
       }
       
-      const db = window.firestore;
-      const { doc, onSnapshot } = window.firebaseModules;
+      const db = window.database;
+      const { ref, onValue, off } = window.firebaseModules;
       
-      console.log('Configurando listeners em tempo real do Firestore...');
+      console.log('Configurando listeners em tempo real do Realtime Database...');
       
       // Unsubscribe from previous listeners if any
-      if (unsubscribeCourses) unsubscribeCourses();
-      if (unsubscribeResponsibles) unsubscribeResponsibles();
+      if (unsubscribeCourses && typeof unsubscribeCourses === 'function') {
+        unsubscribeCourses();
+      }
+      if (unsubscribeResponsibles && typeof unsubscribeResponsibles === 'function') {
+        unsubscribeResponsibles();
+      }
       
       try {
         // Listen to courses changes
-        unsubscribeCourses = onSnapshot(
-          doc(db, 'dashboard', 'courses'),
-          (snapshot) => {
-            if (snapshot.exists() && !isUpdatingFromListener) {
-              const newCourses = snapshot.data().data || [];
-              const currentStr = JSON.stringify(courses.sort((a, b) => (a.id || '').localeCompare(b.id || '')));
-              const newStr = JSON.stringify(newCourses.sort((a, b) => (a.id || '').localeCompare(b.id || '')));
-              
-              if (currentStr !== newStr) {
-                console.log('🔄 Atualizando cursos via listener em tempo real', { oldCount: courses.length, newCount: newCourses.length });
-                isUpdatingFromListener = true;
-                courses = newCourses;
-                filteredCourses = [...courses];
-                // Update localStorage as backup
-                localStorage.setItem(STORAGE_KEY_COURSES, JSON.stringify(courses));
-                updateFilters();
-                applyFilters();
-                setTimeout(() => { isUpdatingFromListener = false; }, 100);
-              }
+        const coursesRef = ref(db, 'courses');
+        const coursesCallback = (snapshot) => {
+          if (snapshot.exists() && !isUpdatingFromListener) {
+            const newCourses = snapshot.val() || [];
+            const currentStr = JSON.stringify(courses.sort((a, b) => (a.id || '').localeCompare(b.id || '')));
+            const newStr = JSON.stringify(newCourses.sort((a, b) => (a.id || '').localeCompare(b.id || '')));
+            
+            if (currentStr !== newStr) {
+              console.log('🔄 Atualizando cursos via listener em tempo real', { oldCount: courses.length, newCount: newCourses.length });
+              isUpdatingFromListener = true;
+              courses = newCourses;
+              filteredCourses = [...courses];
+              // Update localStorage as backup
+              localStorage.setItem(STORAGE_KEY_COURSES, JSON.stringify(courses));
+              updateFilters();
+              applyFilters();
+              setTimeout(() => { isUpdatingFromListener = false; }, 100);
             }
-          },
-          (error) => {
-            console.warn('⚠️ Erro no listener de courses (sincronização em tempo real desabilitada):', error.code || error.message);
-            if (error.code === 'permission-denied') {
-              console.warn('Permissão negada no Firestore. Verifique as regras de segurança.');
-            }
-            unsubscribeCourses = null;
           }
-        );
+        };
+        onValue(coursesRef, coursesCallback, (error) => {
+          console.warn('⚠️ Erro no listener de courses (sincronização em tempo real desabilitada):', error.code || error.message);
+          if (error.code === 'PERMISSION_DENIED') {
+            console.warn('Permissão negada no Realtime Database. Verifique as regras de segurança.');
+          }
+        });
+        // Store unsubscribe function
+        unsubscribeCourses = () => off(coursesRef, 'value', coursesCallback);
         
         // Listen to responsibles changes
-        unsubscribeResponsibles = onSnapshot(
-          doc(db, 'dashboard', 'responsibles'),
-          (snapshot) => {
-            if (snapshot.exists() && !isUpdatingFromListener) {
-              const newResponsibles = snapshot.data().data || {};
-              const currentStr = JSON.stringify(lotResponsibles);
-              const newStr = JSON.stringify(newResponsibles);
-              
-              if (currentStr !== newStr) {
-                console.log('🔄 Atualizando responsáveis via listener em tempo real');
-                isUpdatingFromListener = true;
-                lotResponsibles = newResponsibles;
-                // Update localStorage as backup
-                localStorage.setItem(STORAGE_KEY_RESPONSIBLES, JSON.stringify(lotResponsibles));
-                renderAll();
-                setTimeout(() => { isUpdatingFromListener = false; }, 100);
-              }
+        const responsiblesRef = ref(db, 'responsibles');
+        const responsiblesCallback = (snapshot) => {
+          if (snapshot.exists() && !isUpdatingFromListener) {
+            const newResponsibles = snapshot.val() || {};
+            const currentStr = JSON.stringify(lotResponsibles);
+            const newStr = JSON.stringify(newResponsibles);
+            
+            if (currentStr !== newStr) {
+              console.log('🔄 Atualizando responsáveis via listener em tempo real');
+              isUpdatingFromListener = true;
+              lotResponsibles = newResponsibles;
+              // Update localStorage as backup
+              localStorage.setItem(STORAGE_KEY_RESPONSIBLES, JSON.stringify(lotResponsibles));
+              renderAll();
+              setTimeout(() => { isUpdatingFromListener = false; }, 100);
             }
-          },
-          (error) => {
-            console.warn('⚠️ Erro no listener de responsibles (sincronização em tempo real desabilitada):', error.code || error.message);
-            if (error.code === 'permission-denied') {
-              console.warn('Permissão negada no Firestore. Verifique as regras de segurança.');
-            }
-            unsubscribeResponsibles = null;
           }
-        );
+        };
+        onValue(responsiblesRef, responsiblesCallback, (error) => {
+          console.warn('⚠️ Erro no listener de responsibles (sincronização em tempo real desabilitada):', error.code || error.message);
+          if (error.code === 'PERMISSION_DENIED') {
+            console.warn('Permissão negada no Realtime Database. Verifique as regras de segurança.');
+          }
+        });
+        // Store unsubscribe function
+        unsubscribeResponsibles = () => off(responsiblesRef, 'value', responsiblesCallback);
         
         console.log('✅ Listeners em tempo real configurados com sucesso');
       } catch (error) {
@@ -927,10 +1116,12 @@
       document.getElementById('login-error').classList.add('hidden');
       document.getElementById('login-email').value = '';
       document.getElementById('login-password').value = '';
+      document.body.classList.add('modal-open');
     }
 
     function closeLoginModal() {
       document.getElementById('login-modal').classList.add('hidden');
+      document.body.classList.remove('modal-open');
     }
 
     async function handleLogin() {
@@ -1033,28 +1224,26 @@
           await checkFirebaseAuth();
         }
         
-        // Load data (tries Firestore first, falls back to localStorage)
-        await loadFromFirestore();
+        // Load data (tries Realtime Database first, falls back to localStorage)
+        await loadFromRealtimeDatabase();
         
         // Set up real-time listeners for synchronization (non-blocking)
         setTimeout(() => {
           setupRealtimeListeners();
         }, 500);
         
-        // Verify Firestore connection in background (non-blocking, for logging only)
-        if (window.firestore && window.firebaseModules) {
+        // Verify Realtime Database connection in background (non-blocking, for logging only)
+        if (window.database && window.firebaseModules) {
           setTimeout(async () => {
             try {
-              const { doc, getDoc } = window.firebaseModules;
-              const db = window.firestore;
-              const testDoc = await getDoc(doc(db, 'dashboard', 'courses'));
-              console.log('✅ Firestore funcionando corretamente', { exists: testDoc.exists() });
+              const { ref, get } = window.firebaseModules;
+              const db = window.database;
+              const testSnapshot = await get(ref(db, 'courses'));
+              console.log('✅ Realtime Database funcionando corretamente', { exists: testSnapshot.exists() });
             } catch (error) {
-              console.warn('⚠️ Firestore não acessível:', error.code || error.message);
-              if (error.code === 'permission-denied') {
-                console.warn('💡 Configure as regras: allow read, write: if true; (temporário para teste)');
-              } else if (error.code === 'not-found') {
-                console.warn('💡 Crie o banco Firestore em: Firebase Console → Firestore Database');
+              console.warn('⚠️ Realtime Database não acessível:', error.code || error.message);
+              if (error.code === 'PERMISSION_DENIED') {
+                console.warn('💡 Configure as regras do Realtime Database no Firebase Console.');
               }
             }
           }, 2000);
@@ -1117,7 +1306,7 @@
       }
 
       document.getElementById('stats-cards').innerHTML = `
-        <div class="bg-card border border-border rounded-lg p-4">
+        <div class="card-elegant rounded-2xl p-4">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm text-muted-foreground">Total de Cursos</p>
@@ -1130,33 +1319,33 @@
             </div>
           </div>
         </div>
-        <div class="bg-card border border-border rounded-lg p-4">
+        <div class="card-elegant rounded-2xl p-4">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm text-muted-foreground">Concluídos</p>
               <p class="text-3xl font-bold text-green-500">${completed}</p>
             </div>
-            <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
+            <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center glow-border">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
             </div>
           </div>
         </div>
-        <div class="bg-card border border-border rounded-lg p-4">
+        <div class="card-elegant rounded-2xl p-4">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm text-muted-foreground">Pendentes</p>
               <p class="text-3xl font-bold text-orange-500">${pending}</p>
             </div>
-            <div class="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
+            <div class="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center glow-border">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
           </div>
         </div>
-        <div class="bg-card border border-border rounded-lg p-4">
+        <div class="card-elegant rounded-2xl p-4">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm text-muted-foreground">Em Andamento</p>
@@ -1191,59 +1380,77 @@
       document.getElementById('lot-sections').innerHTML = lots.map(lot => {
         const lotCourses = filteredCourses.filter(c => c.lote === lot);
         const responsibles = lotResponsibles[lot] || [];
+        const pendingCount = lotCourses.filter(c => normalizeStatus(c.status) === 'pendente').length;
         
         return `
-          <div class="bg-card border border-border rounded-lg overflow-hidden">
-            <div class="p-4 border-b border-border">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
-                    <span class="text-primary font-bold">${lot}</span>
-                  </div>
-                  <div>
-                    <h2 class="text-lg font-semibold text-foreground">Lote ${lot}</h2>
-                    <p class="text-sm text-muted-foreground">${lotCourses.length} curso(s)</p>
-                  </div>
-                </div>
-                ${isLoggedIn ? `
-                <button onclick="openResponsiblesModal(${lot})" class="flex items-center gap-2 px-3 py-2 border border-border rounded-lg hover:bg-secondary transition-colors text-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  Responsáveis (${responsibles.length})
-                </button>
-                ` : `
-                <div class="flex items-center gap-2 px-3 py-2 text-muted-foreground text-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  Responsáveis (${responsibles.length})
-                </div>
-                `}
-              </div>
-              
-              ${responsibles.length > 0 ? `
-                <div class="mt-4 flex flex-wrap gap-2">
-                  ${responsibles.map(r => `
-                    <div class="flex items-center gap-2 bg-secondary/50 border border-border rounded-lg px-3 py-2">
-                      <div class="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
-                        <span class="text-primary text-sm font-medium">${r.name.charAt(0)}</span>
-                      </div>
-                      <div>
-                        <p class="text-sm font-medium text-foreground">${r.name}</p>
-                        <p class="text-xs text-muted-foreground">${r.cargo}</p>
-                      </div>
-                      <a href="https://wa.me/${r.phone.replace(/\D/g, '')}" target="_blank" 
-                        class="ml-2 w-8 h-8 bg-green-600 hover:bg-green-700 rounded-full flex items-center justify-center transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                        </svg>
-                      </a>
+          <div class="card-elegant rounded-2xl overflow-hidden relative mb-6">
+            <div class="p-5">
+              <!-- Header do Card: Título, Responsáveis e Ações -->
+              <div class="flex items-start justify-between gap-4 mb-4">
+                <div class="flex-1 min-w-0">
+                  <!-- Primeira Linha: Lote e Responsáveis -->
+                  <div class="flex items-center gap-4 flex-wrap mb-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-primary/30 to-blue-600/30 rounded-xl flex items-center justify-center glow-border flex-shrink-0">
+                      <span class="text-primary font-bold text-lg">${lot}</span>
                     </div>
-                  `).join('')}
+                    <h2 class="text-xl font-semibold text-foreground">Lote ${lot}</h2>
+                    ${responsibles.length > 0 ? `
+                      <div class="flex items-center gap-3 flex-wrap">
+                        ${responsibles.map(r => `
+                          <div class="flex items-center gap-2">
+                            <div class="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0 border border-primary/30">
+                              <span class="text-primary text-sm font-medium">${r.name.charAt(0)}</span>
+                            </div>
+                            <div class="flex flex-col">
+                              <div class="flex items-center gap-2">
+                                <p class="text-base font-medium text-foreground">${r.name}</p>
+                                <a href="https://wa.me/${r.phone.replace(/\D/g, '')}" target="_blank" 
+                                  class="w-8 h-8 bg-green-600/20 hover:bg-green-600/30 text-green-400 hover:text-green-300 rounded-lg flex items-center justify-center transition-all flex-shrink-0" title="Contatar via WhatsApp">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                                  </svg>
+                                </a>
+                              </div>
+                              <p class="text-xs text-muted-foreground">${r.cargo}</p>
+                            </div>
+                          </div>
+                        `).join('')}
+                      </div>
+                    ` : ''}
+                  </div>
+                  
+                  <!-- Segunda Linha: Quantidade de Cursos e Alertas -->
+                  <div class="flex items-center gap-4 flex-wrap">
+                    <p class="text-sm text-muted-foreground">${lotCourses.length} curso(s)</p>
+                    ${pendingCount > 0 ? `
+                      <div class="alert-pending" title="${pendingCount} curso(s) pendente(s)">
+                        <span>Cursos Pendentes</span>
+                        <span class="pending-count">${pendingCount}</span>
+                      </div>
+                    ` : ''}
+                  </div>
                 </div>
-              ` : ''}
+                
+                <!-- Botões de Ação Minimalistas -->
+                <div class="flex items-center gap-2 flex-shrink-0">
+                  <button onclick="downloadLotPDF(${lot})" class="w-10 h-10 flex items-center justify-center bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 rounded-xl transition-all duration-300 border border-red-600/30 hover:border-red-600/50" title="Baixar PDF do Lote">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </button>
+                  ${isLoggedIn ? `
+                  <button onclick="openResponsiblesModal(${lot})" class="w-10 h-10 flex items-center justify-center border border-border/50 hover:bg-secondary/50 text-foreground hover:text-primary rounded-xl transition-all duration-300 relative" title="Gerenciar Responsáveis">
+                    ${responsibles.length > 0 ? `<span class="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center">${responsibles.length}</span>` : ''}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </button>
+                  ` : ''}
+                </div>
+              </div>
             </div>
+            
+            <div class="border-t border-border/30"></div>
             
             <!-- Desktop Table -->
             <div class="hidden md:block overflow-x-auto">
@@ -1265,7 +1472,7 @@
                 </thead>
                 <tbody class="divide-y divide-border">
                   ${lotCourses.map(course => `
-                    <tr class="hover:bg-secondary/30 transition-colors">
+                    <tr class="hover:bg-secondary/30 transition-colors cursor-pointer" onclick="openEditCourseModal('${course.id}')">
                       <!-- Added ID column to table row -->
                       <td class="px-4 py-3 text-muted-foreground font-mono text-xs">${course.idCurso || '-'}</td>
                       <td class="px-4 py-3 text-foreground font-medium">${course.tipologia}</td>
@@ -1278,7 +1485,7 @@
                       <td class="px-4 py-3 text-muted-foreground">${course.concludentes !== null ? course.concludentes : '-'}</td>
                       ${isLoggedIn ? `
                       <td class="px-4 py-3">
-                        <button onclick="deleteCourse('${course.id}')" class="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors" title="Excluir curso">
+                        <button onclick="event.stopPropagation(); deleteCourse('${course.id}')" class="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors" title="Excluir curso">
                           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
@@ -1294,7 +1501,7 @@
             <!-- Mobile Cards -->
             <div class="md:hidden p-4 space-y-3">
               ${lotCourses.map(course => `
-                <div class="bg-secondary/30 border border-border rounded-lg p-4 space-y-3">
+                <div class="bg-secondary/30 border border-border rounded-lg p-4 space-y-3 cursor-pointer hover:bg-secondary/40 transition-colors" onclick="openEditCourseModal('${course.id}')">
                   <div class="flex items-start justify-between">
                     <div>
                       <h3 class="font-medium text-foreground">${course.tipologia}</h3>
@@ -1304,7 +1511,7 @@
                     <div class="flex items-center gap-2">
                       ${getStatusBadge(course.status)}
                       ${isLoggedIn ? `
-                      <button onclick="deleteCourse('${course.id}')" class="p-1 text-red-400 hover:bg-red-500/20 rounded transition-colors">
+                      <button onclick="event.stopPropagation(); deleteCourse('${course.id}')" class="p-1 text-red-400 hover:bg-red-500/20 rounded transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
@@ -1409,6 +1616,86 @@
       renderAll();
     }
 
+    function openEditCourseModal(courseId) {
+      const course = courses.find(c => c.id === courseId);
+      if (!course) return;
+      
+      currentEditCourse = course;
+      
+      // Preencher informações somente leitura
+      document.getElementById('edit-course-id').textContent = course.idCurso || '-';
+      document.getElementById('edit-course-tipologia').textContent = course.tipologia || '-';
+      document.getElementById('edit-course-carga').textContent = course.cargaHoraria ? `${course.cargaHoraria}h` : '-';
+      document.getElementById('edit-course-lote').textContent = course.lote || '-';
+      document.getElementById('edit-course-municipio').textContent = course.municipio || '-';
+      document.getElementById('edit-course-cozinha').textContent = course.cozinha || '-';
+      
+      // Preencher campos editáveis
+      document.getElementById('edit-course-inicio').value = course.dataInicio ? course.dataInicio : '';
+      document.getElementById('edit-course-fim').value = course.dataFim ? course.dataFim : '';
+      document.getElementById('edit-course-status').value = course.status || 'Pendente';
+      document.getElementById('edit-course-concludentes').value = course.concludentes !== null ? course.concludentes : '';
+      
+      // Mostrar/ocultar seção de edição baseado no login
+      const editableSection = document.getElementById('edit-course-editable-section');
+      const actionsSection = document.getElementById('edit-course-actions');
+      const viewOnlySection = document.getElementById('edit-course-view-only');
+      
+      if (isLoggedIn) {
+        editableSection.classList.remove('hidden');
+        actionsSection.classList.remove('hidden');
+        viewOnlySection.classList.add('hidden');
+      } else {
+        editableSection.classList.add('hidden');
+        actionsSection.classList.add('hidden');
+        viewOnlySection.classList.remove('hidden');
+      }
+      
+      // Mostrar modal e aplicar efeito no header
+      document.getElementById('edit-course-modal').classList.remove('hidden');
+      document.body.classList.add('modal-open');
+    }
+
+    function closeEditCourseModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('edit-course-modal').classList.add('hidden');
+      document.body.classList.remove('modal-open');
+      currentEditCourse = null;
+    }
+
+    function saveEditedCourse() {
+      if (!currentEditCourse) return;
+      
+      const dataInicio = document.getElementById('edit-course-inicio').value || null;
+      const dataFim = document.getElementById('edit-course-fim').value || null;
+      const status = document.getElementById('edit-course-status').value;
+      const concludentes = document.getElementById('edit-course-concludentes').value ? parseInt(document.getElementById('edit-course-concludentes').value) : null;
+      
+      // Atualizar curso
+      const courseIndex = courses.findIndex(c => c.id === currentEditCourse.id);
+      if (courseIndex !== -1) {
+        courses[courseIndex].dataInicio = dataInicio;
+        courses[courseIndex].dataFim = dataFim;
+        courses[courseIndex].status = status;
+        courses[courseIndex].concludentes = concludentes;
+        
+        // Atualizar também no filteredCourses
+        const filteredIndex = filteredCourses.findIndex(c => c.id === currentEditCourse.id);
+        if (filteredIndex !== -1) {
+          filteredCourses[filteredIndex].dataInicio = dataInicio;
+          filteredCourses[filteredIndex].dataFim = dataFim;
+          filteredCourses[filteredIndex].status = status;
+          filteredCourses[filteredIndex].concludentes = concludentes;
+        }
+      }
+      
+      // Salvar e atualizar
+      saveToStorage();
+      renderAll();
+      closeEditCourseModal();
+      alert('Curso atualizado com sucesso!');
+    }
+
     function deleteLot() {
       if (!confirm(`Deseja excluir o Lote ${currentEditLot} inteiro? Todos os cursos e responsáveis serão removidos.`)) return;
       courses = courses.filter(c => c.lote !== currentEditLot);
@@ -1490,6 +1777,7 @@
         return;
       }
       document.getElementById('restore-modal').classList.remove('hidden');
+      document.body.classList.add('modal-open');
       document.getElementById('restore-file-input').value = '';
       document.getElementById('restore-error').classList.add('hidden');
       document.getElementById('restore-preview').classList.add('hidden');
@@ -1498,6 +1786,7 @@
 
     function closeRestoreModal() {
       document.getElementById('restore-modal').classList.add('hidden');
+      document.body.classList.remove('modal-open');
       document.getElementById('restore-file-input').value = '';
       document.getElementById('restore-error').classList.add('hidden');
       document.getElementById('restore-preview').classList.add('hidden');
@@ -1622,11 +1911,13 @@
         return;
       }
       document.getElementById('add-course-modal').classList.remove('hidden');
+      document.body.classList.add('modal-open');
     }
 
     function closeAddCourseModal(event) {
       if (event && event.target !== event.currentTarget) return;
       document.getElementById('add-course-modal').classList.add('hidden');
+      document.body.classList.remove('modal-open');
       document.getElementById('course-id').value = ''; // Clear ID field
       document.getElementById('course-tipologia').value = '';
       document.getElementById('course-carga').value = '';
@@ -1690,11 +1981,13 @@
         return;
       }
       document.getElementById('import-modal').classList.remove('hidden');
+      document.body.classList.add('modal-open');
       resetImportModal();
     }
 
     function closeImportModal() {
       document.getElementById('import-modal').classList.add('hidden');
+      document.body.classList.remove('modal-open');
       resetImportModal();
     }
 
@@ -1992,6 +2285,7 @@
       currentEditLot = lotNumber;
       document.getElementById('modal-lot-name').textContent = `Lote ${lotNumber}`;
       document.getElementById('responsibles-modal').classList.remove('hidden');
+      document.body.classList.add('modal-open');
       renderLotCourseInfo(lotNumber);
       renderResponsiblesList();
       updateUIForLoginStatus(); // Update modal UI
@@ -2046,6 +2340,7 @@
     function closeResponsiblesModal(event) {
       if (event && event.target !== event.currentTarget) return;
       document.getElementById('responsibles-modal').classList.add('hidden');
+      document.body.classList.remove('modal-open');
       document.getElementById('resp-name').value = '';
       document.getElementById('resp-cargo').value = '';
       document.getElementById('resp-phone').value = '';
@@ -2140,6 +2435,133 @@
       saveToStorage(); // Save after removing responsible
       renderResponsiblesList();
       renderLotSections();
+    }
+
+    function downloadLotPDF(lotNumber) {
+      const { jsPDF } = window.jspdf;
+      const lotCourses = courses.filter(c => c.lote === lotNumber);
+      const responsibles = lotResponsibles[lotNumber] || [];
+      
+      if (lotCourses.length === 0) {
+        alert('Nenhum curso encontrado neste lote.');
+        return;
+      }
+      
+      const doc = new jsPDF('landscape');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 20;
+      let yPos = margin;
+      
+      // Título
+      doc.setFontSize(18);
+      doc.setFont(undefined, 'bold');
+      doc.text(`Lote ${lotNumber}`, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 15;
+      
+      // Informações gerais
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Total de Cursos: ${lotCourses.length}`, margin, yPos);
+      yPos += 8;
+      doc.text(`Responsáveis: ${responsibles.length}`, margin, yPos);
+      yPos += 15;
+      
+      // Tabela de cursos
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('Cursos do Lote:', margin, yPos);
+      yPos += 10;
+      
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      
+      // Cabeçalhos da tabela
+      const headers = ['ID', 'Tipologia', 'C.H.', 'Município', 'Cozinha', 'Status'];
+      const colWidths = [22, 70, 22, 45, 55, 35];
+      let xPos = margin;
+      
+      doc.setFont(undefined, 'bold');
+      headers.forEach((header, i) => {
+        doc.text(header, xPos, yPos);
+        xPos += colWidths[i];
+      });
+      yPos += 8;
+      
+      // Linhas dos cursos
+      doc.setFont(undefined, 'normal');
+      lotCourses.forEach(course => {
+        // Verifica se precisa de nova página
+        if (yPos > doc.internal.pageSize.getHeight() - 30) {
+          doc.addPage();
+          yPos = margin;
+        }
+        
+        xPos = margin;
+        const rowData = [
+          course.idCurso || '-',
+          course.tipologia || '-',
+          course.cargaHoraria ? `${course.cargaHoraria}h` : '-',
+          course.municipio || '-',
+          course.cozinha || '-',
+          course.status || 'Pendente'
+        ];
+        
+        rowData.forEach((data, i) => {
+          // Ajustar tamanho do texto baseado na coluna (com mais espaço em paisagem)
+          // Para cozinha, não truncar - mostrar texto completo
+          let maxLength = 1000; // Valor muito alto para não truncar por padrão
+          if (i === 0) maxLength = 12; // ID
+          else if (i === 1) maxLength = 45; // Tipologia
+          else if (i === 4) maxLength = 1000; // Cozinha - sem truncamento
+          else if (i === 3) maxLength = 28; // Município
+          else if (i === 5) maxLength = 18; // Status
+          
+          let text = String(data);
+          // Apenas truncar se exceder o limite (exceto para cozinha)
+          if (text.length > maxLength && maxLength < 100) {
+            text = text.substring(0, maxLength - 3) + '...';
+          }
+          
+          // Para cozinha, quebrar linha se necessário
+          if (i === 4 && text.length > 35) {
+            const lines = doc.splitTextToSize(text, colWidths[i] - 2);
+            doc.text(lines, xPos, yPos);
+            yPos += (lines.length - 1) * 5; // Ajustar altura se houver múltiplas linhas
+          } else {
+            doc.text(text, xPos, yPos);
+          }
+          xPos += colWidths[i];
+        });
+        yPos += 7;
+      });
+      
+      // Responsáveis
+      if (responsibles.length > 0) {
+        yPos += 10;
+        if (yPos > doc.internal.pageSize.getHeight() - 50) {
+          doc.addPage();
+          yPos = margin;
+        }
+        
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text('Responsáveis:', margin, yPos);
+        yPos += 10;
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        responsibles.forEach(resp => {
+          if (yPos > doc.internal.pageSize.getHeight() - 30) {
+            doc.addPage();
+            yPos = margin;
+          }
+          doc.text(`${resp.name} - ${resp.cargo}`, margin, yPos);
+          yPos += 7;
+        });
+      }
+      
+      // Salvar PDF
+      doc.save(`Lote-${lotNumber}-${new Date().toISOString().split('T')[0]}.pdf`);
     }
   </script>
 </body>
