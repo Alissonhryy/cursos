@@ -176,6 +176,7 @@
       }
       /* Modais em tela cheia no mobile */
       .modal-content {
+        position: absolute !important;
         width: 100vw !important;
         max-width: 100vw !important;
         height: 100vh !important;
@@ -194,8 +195,8 @@
     }
     @media (min-width: 768px) {
       .modal-content {
+        position: absolute !important;
         width: auto !important;
-        max-width: auto !important;
         height: auto !important;
         max-height: 90vh !important;
         top: 50% !important;
@@ -204,6 +205,10 @@
         border-radius: 1rem !important;
         margin: 0 !important;
       }
+    }
+    /* Base para modais - garantir position absolute */
+    .modal-content {
+      position: absolute;
     }
     /* FAB (Floating Action Button) */
     .fab {
@@ -772,7 +777,7 @@
   <!-- Restore Backup Modal -->
   <div id="restore-modal" class="fixed inset-0 z-[1100] hidden">
     <div class="modal-overlay absolute inset-0" onclick="closeRestoreModal()"></div>
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-card border border-border rounded-lg shadow-xl overflow-hidden">
+    <div class="modal-content w-full max-w-md bg-card border border-border md:rounded-lg shadow-xl overflow-hidden">
       <div class="flex items-center justify-between p-4 border-b border-border">
         <div>
           <h2 class="text-lg font-semibold text-foreground">Restaurar Backup</h2>
