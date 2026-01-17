@@ -22,15 +22,23 @@
     // Load Firebase modules
     Promise.all([
       import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js'),
-      import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js')
-    ]).then(([firebaseApp, firebaseAuth]) => {
+      import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js'),
+      import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js')
+    ]).then(([firebaseApp, firebaseAuth, firebaseFirestore]) => {
       // Initialize Firebase
       window.firebaseApp = firebaseApp.initializeApp(firebaseConfig);
       window.firebaseAuth = firebaseAuth.getAuth(window.firebaseApp);
+      window.firestore = firebaseFirestore.getFirestore(window.firebaseApp);
       window.firebaseModules = {
         signInWithEmailAndPassword: firebaseAuth.signInWithEmailAndPassword,
         signOut: firebaseAuth.signOut,
-        onAuthStateChanged: firebaseAuth.onAuthStateChanged
+        onAuthStateChanged: firebaseAuth.onAuthStateChanged,
+        collection: firebaseFirestore.collection,
+        doc: firebaseFirestore.doc,
+        getDoc: firebaseFirestore.getDoc,
+        setDoc: firebaseFirestore.setDoc,
+        onSnapshot: firebaseFirestore.onSnapshot,
+        updateDoc: firebaseFirestore.updateDoc
       };
       
       // Trigger ready event
@@ -234,6 +242,40 @@
       <div class="bg-card border border-border rounded-lg p-6">
         <h2 class="text-xl font-semibold text-foreground mb-6">Configurações</h2>
         
+        <!-- Backup e Restauração -->
+        <div class="border border-primary/30 rounded-lg p-4 bg-primary/5 mb-6">
+          <h3 class="text-lg font-medium text-foreground mb-2">Backup e Restauração</h3>
+          <p class="text-sm text-muted-foreground mb-4">Faça backup dos seus dados ou restaure de um backup anterior.</p>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
+              <div>
+                <p class="font-medium text-foreground">Fazer Backup</p>
+                <p class="text-sm text-muted-foreground">Exporta todos os cursos e responsáveis para um arquivo JSON.</p>
+              </div>
+              <button onclick="exportBackup()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Exportar
+              </button>
+            </div>
+            
+            <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
+              <div>
+                <p class="font-medium text-foreground">Restaurar Backup</p>
+                <p class="text-sm text-muted-foreground">Importa dados de um arquivo JSON de backup.</p>
+              </div>
+              <button onclick="openRestoreModal()" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                Importar
+              </button>
+            </div>
+          </div>
+        </div>
+        
         <div class="border border-red-500/30 rounded-lg p-4 bg-red-500/5">
           <h3 class="text-lg font-medium text-red-400 mb-2">Zona de Perigo</h3>
           <p class="text-sm text-muted-foreground mb-4">Ações irreversíveis. Tenha cuidado ao executar.</p>
@@ -415,6 +457,65 @@
     </div>
   </div>
 
+  <!-- Restore Backup Modal -->
+  <div id="restore-modal" class="fixed inset-0 z-50 hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeRestoreModal()"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-card border border-border rounded-lg shadow-xl overflow-hidden">
+      <div class="flex items-center justify-between p-4 border-b border-border">
+        <div>
+          <h2 class="text-lg font-semibold text-foreground">Restaurar Backup</h2>
+          <p class="text-sm text-muted-foreground">Importe um arquivo JSON de backup</p>
+        </div>
+        <button onclick="closeRestoreModal()" class="p-2 hover:bg-secondary rounded-lg transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="p-4 space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-muted-foreground mb-2">Selecione o arquivo de backup</label>
+          <input type="file" id="restore-file-input" accept=".json" 
+            class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+          <p class="text-xs text-muted-foreground mt-2">Formatos suportados: JSON</p>
+        </div>
+        
+        <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+          <p class="text-sm font-medium text-yellow-400 mb-2">⚠️ Atenção</p>
+          <div class="space-y-2">
+            <label class="flex items-center">
+              <input type="radio" name="restore-mode" value="replace" checked class="w-4 h-4 text-primary bg-input border-border rounded focus:ring-primary">
+              <span class="ml-2 text-sm text-foreground">Substituir todos os dados (apaga dados existentes)</span>
+            </label>
+            <label class="flex items-center">
+              <input type="radio" name="restore-mode" value="merge" class="w-4 h-4 text-primary bg-input border-border rounded focus:ring-primary">
+              <span class="ml-2 text-sm text-foreground">Mesclar dados (adiciona aos dados existentes)</span>
+            </label>
+          </div>
+        </div>
+        
+        <div id="restore-preview" class="hidden bg-secondary/50 border border-border rounded-lg p-3">
+          <p class="text-sm font-medium text-foreground mb-2">Pré-visualização do backup:</p>
+          <div id="restore-preview-content" class="text-xs text-muted-foreground"></div>
+        </div>
+        
+        <div id="restore-error" class="hidden p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm"></div>
+        
+        <div class="flex justify-end gap-3">
+          <button onclick="closeRestoreModal()" class="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-secondary transition-colors">
+            Cancelar
+          </button>
+          <button onclick="confirmRestore()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Restaurar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Add Course Modal -->
   <div id="add-course-modal" class="fixed inset-0 z-50 hidden">
     <div class="modal-overlay absolute inset-0" onclick="closeAddCourseModal(event)"></div>
@@ -506,10 +607,11 @@
     const STORAGE_KEY_COURSES = 'dashboard_courses';
     const STORAGE_KEY_RESPONSIBLES = 'dashboard_responsibles';
 
-    // Load data from localStorage or start empty
-    let courses = JSON.parse(localStorage.getItem(STORAGE_KEY_COURSES)) || [];
-    let lotResponsibles = JSON.parse(localStorage.getItem(STORAGE_KEY_RESPONSIBLES)) || {};
-    let filteredCourses = [...courses];
+    // Load data - will be loaded from Firestore
+    let courses = [];
+    let lotResponsibles = {};
+    let filteredCourses = [];
+    let dataMigrationDone = false;
     
     let currentEditLot = null;
     let uploadedData = [];
@@ -517,6 +619,8 @@
     let columnMapping = {};
     let isLoggedIn = false;
     let firebaseAuth = null;
+    let unsubscribeCourses = null;
+    let unsubscribeResponsibles = null;
 
     const fieldLabels = {
       idCurso: 'ID do Curso',
@@ -531,9 +635,153 @@
       cozinha: 'Cozinha'
     };
 
+    async function saveToFirestore() {
+      if (isUpdatingFromListener) return; // Prevent infinite loop
+      
+      if (!window.firestore || !window.firebaseModules) {
+        console.warn('Firestore não disponível, usando localStorage como fallback');
+        localStorage.setItem(STORAGE_KEY_COURSES, JSON.stringify(courses));
+        localStorage.setItem(STORAGE_KEY_RESPONSIBLES, JSON.stringify(lotResponsibles));
+        return;
+      }
+
+      try {
+        const db = window.firestore;
+        const { doc, setDoc } = window.firebaseModules;
+        
+        // Save courses
+        await setDoc(doc(db, 'dashboard', 'courses'), { 
+          data: courses,
+          updatedAt: new Date().toISOString()
+        }, { merge: false });
+        
+        // Save responsibles
+        await setDoc(doc(db, 'dashboard', 'responsibles'), { 
+          data: lotResponsibles,
+          updatedAt: new Date().toISOString()
+        }, { merge: false });
+      } catch (error) {
+        console.error('Erro ao salvar no Firestore:', error);
+        // Fallback to localStorage
+        localStorage.setItem(STORAGE_KEY_COURSES, JSON.stringify(courses));
+        localStorage.setItem(STORAGE_KEY_RESPONSIBLES, JSON.stringify(lotResponsibles));
+      }
+    }
+
+    // Alias for compatibility
     function saveToStorage() {
-      localStorage.setItem(STORAGE_KEY_COURSES, JSON.stringify(courses));
-      localStorage.setItem(STORAGE_KEY_RESPONSIBLES, JSON.stringify(lotResponsibles));
+      saveToFirestore();
+    }
+
+    async function loadFromFirestore() {
+      if (!window.firestore || !window.firebaseModules) {
+        // Fallback to localStorage
+        const localCourses = JSON.parse(localStorage.getItem(STORAGE_KEY_COURSES)) || [];
+        const localResponsibles = JSON.parse(localStorage.getItem(STORAGE_KEY_RESPONSIBLES)) || {};
+        courses = localCourses;
+        lotResponsibles = localResponsibles;
+        filteredCourses = [...courses];
+        return;
+      }
+
+      try {
+        const db = window.firestore;
+        const { doc, getDoc } = window.firebaseModules;
+        
+        // Load courses
+        const coursesDoc = await getDoc(doc(db, 'dashboard', 'courses'));
+        if (coursesDoc.exists()) {
+          courses = coursesDoc.data().data || [];
+        } else {
+          // Try to migrate from localStorage
+          const localCourses = JSON.parse(localStorage.getItem(STORAGE_KEY_COURSES)) || [];
+          if (localCourses.length > 0 && !dataMigrationDone) {
+            courses = localCourses;
+            await saveToFirestore();
+            dataMigrationDone = true;
+          }
+        }
+        
+        // Load responsibles
+        const responsiblesDoc = await getDoc(doc(db, 'dashboard', 'responsibles'));
+        if (responsiblesDoc.exists()) {
+          lotResponsibles = responsiblesDoc.data().data || {};
+        } else {
+          // Try to migrate from localStorage
+          const localResponsibles = JSON.parse(localStorage.getItem(STORAGE_KEY_RESPONSIBLES)) || {};
+          if (Object.keys(localResponsibles).length > 0 && !dataMigrationDone) {
+            lotResponsibles = localResponsibles;
+            await saveToFirestore();
+            dataMigrationDone = true;
+          }
+        }
+        
+        filteredCourses = [...courses];
+        renderAll();
+      } catch (error) {
+        console.error('Erro ao carregar do Firestore:', error);
+        // Fallback to localStorage
+        const localCourses = JSON.parse(localStorage.getItem(STORAGE_KEY_COURSES)) || [];
+        const localResponsibles = JSON.parse(localStorage.getItem(STORAGE_KEY_RESPONSIBLES)) || {};
+        courses = localCourses;
+        lotResponsibles = localResponsibles;
+        filteredCourses = [...courses];
+      }
+    }
+
+    let isUpdatingFromListener = false;
+
+    function setupRealtimeListeners() {
+      if (!window.firestore || !window.firebaseModules) {
+        // Fallback to localStorage sync (manual refresh needed)
+        console.warn('Firestore não disponível, sincronização em tempo real desabilitada');
+        return;
+      }
+      
+      const db = window.firestore;
+      const { doc, onSnapshot } = window.firebaseModules;
+      
+      // Unsubscribe from previous listeners if any
+      if (unsubscribeCourses) unsubscribeCourses();
+      if (unsubscribeResponsibles) unsubscribeResponsibles();
+      
+      // Listen to courses changes
+      unsubscribeCourses = onSnapshot(doc(db, 'dashboard', 'courses'), (snapshot) => {
+        if (snapshot.exists() && !isUpdatingFromListener) {
+          const newCourses = snapshot.data().data || [];
+          const currentStr = JSON.stringify(courses.sort((a, b) => (a.id || '').localeCompare(b.id || '')));
+          const newStr = JSON.stringify(newCourses.sort((a, b) => (a.id || '').localeCompare(b.id || '')));
+          
+          if (currentStr !== newStr) {
+            isUpdatingFromListener = true;
+            courses = newCourses;
+            filteredCourses = [...courses];
+            updateFilters();
+            applyFilters();
+            setTimeout(() => { isUpdatingFromListener = false; }, 100);
+          }
+        }
+      }, (error) => {
+        console.error('Erro no listener de courses:', error);
+      });
+      
+      // Listen to responsibles changes
+      unsubscribeResponsibles = onSnapshot(doc(db, 'dashboard', 'responsibles'), (snapshot) => {
+        if (snapshot.exists() && !isUpdatingFromListener) {
+          const newResponsibles = snapshot.data().data || {};
+          const currentStr = JSON.stringify(lotResponsibles);
+          const newStr = JSON.stringify(newResponsibles);
+          
+          if (currentStr !== newStr) {
+            isUpdatingFromListener = true;
+            lotResponsibles = newResponsibles;
+            renderAll();
+            setTimeout(() => { isUpdatingFromListener = false; }, 100);
+          }
+        }
+      }, (error) => {
+        console.error('Erro no listener de responsibles:', error);
+      });
     }
 
     // Firebase Authentication
@@ -706,6 +954,12 @@
           // Check initial auth state
           await checkFirebaseAuth();
         }
+        
+        // Load data from Firestore (or localStorage as fallback)
+        await loadFromFirestore();
+        
+        // Set up real-time listeners for synchronization
+        setupRealtimeListeners();
         
         // Hide loading screen
         document.getElementById('loading-screen').classList.add('hidden');
@@ -1095,6 +1349,172 @@
       updateFilters();
       renderAll();
       alert('Todos os dados foram excluídos.');
+    }
+
+    // Backup and Restore Functions
+    function exportBackup() {
+      try {
+        const backup = {
+          version: '1.0',
+          exportDate: new Date().toISOString(),
+          data: {
+            courses: courses,
+            responsibles: lotResponsibles
+          }
+        };
+
+        const dataStr = JSON.stringify(backup, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        const dateStr = new Date().toISOString().split('T')[0];
+        link.download = `backup-cursos-${dateStr}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        alert(`Backup exportado com sucesso!\n${courses.length} curso(s) e ${Object.keys(lotResponsibles).length} lote(s) com responsáveis.`);
+      } catch (error) {
+        console.error('Erro ao exportar backup:', error);
+        alert('Erro ao exportar backup. Verifique o console para mais detalhes.');
+      }
+    }
+
+    let backupPreviewData = null;
+
+    function openRestoreModal() {
+      if (!isLoggedIn) {
+        openLoginModal();
+        return;
+      }
+      document.getElementById('restore-modal').classList.remove('hidden');
+      document.getElementById('restore-file-input').value = '';
+      document.getElementById('restore-error').classList.add('hidden');
+      document.getElementById('restore-preview').classList.add('hidden');
+      backupPreviewData = null;
+    }
+
+    function closeRestoreModal() {
+      document.getElementById('restore-modal').classList.add('hidden');
+      document.getElementById('restore-file-input').value = '';
+      document.getElementById('restore-error').classList.add('hidden');
+      document.getElementById('restore-preview').classList.add('hidden');
+      backupPreviewData = null;
+    }
+
+    // Auto-preview when file is selected
+    document.addEventListener('DOMContentLoaded', () => {
+      const fileInput = document.getElementById('restore-file-input');
+      if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              try {
+                const backup = JSON.parse(e.target.result);
+                backupPreviewData = backup;
+                
+                // Validate backup structure
+                if (!backup.data || (!backup.data.courses && !backup.data.responsibles)) {
+                  throw new Error('Formato de backup inválido. O arquivo deve conter dados de cursos e/ou responsáveis.');
+                }
+                
+                const coursesCount = backup.data.courses ? backup.data.courses.length : 0;
+                const responsiblesCount = backup.data.responsibles ? Object.keys(backup.data.responsibles).length : 0;
+                
+                const previewContent = `
+                  <div class="space-y-2">
+                    <p><span class="font-medium">Data do backup:</span> ${backup.exportDate ? new Date(backup.exportDate).toLocaleString('pt-BR') : 'Desconhecida'}</p>
+                    <p><span class="font-medium">Cursos:</span> ${coursesCount}</p>
+                    <p><span class="font-medium">Lotes com responsáveis:</span> ${responsiblesCount}</p>
+                    <p class="text-xs text-muted-foreground mt-3">Selecione o modo de restauração acima e clique em "Restaurar" para continuar.</p>
+                  </div>
+                `;
+                
+                document.getElementById('restore-preview-content').innerHTML = previewContent;
+                document.getElementById('restore-preview').classList.remove('hidden');
+                document.getElementById('restore-error').classList.add('hidden');
+              } catch (error) {
+                console.error('Erro ao ler backup:', error);
+                document.getElementById('restore-error').textContent = `Erro ao ler arquivo: ${error.message}`;
+                document.getElementById('restore-error').classList.remove('hidden');
+                document.getElementById('restore-preview').classList.add('hidden');
+                backupPreviewData = null;
+              }
+            };
+            reader.readAsText(file);
+          }
+        });
+      }
+    });
+
+    async function confirmRestore() {
+      if (!backupPreviewData) {
+        document.getElementById('restore-error').textContent = 'Por favor, selecione um arquivo de backup válido.';
+        document.getElementById('restore-error').classList.remove('hidden');
+        return;
+      }
+
+      const restoreMode = document.querySelector('input[name="restore-mode"]:checked').value;
+      
+      if (restoreMode === 'replace') {
+        if (!confirm('⚠️ ATENÇÃO: Isso irá substituir TODOS os dados atuais pelos dados do backup. Esta ação não pode ser desfeita. Deseja continuar?')) {
+          return;
+        }
+        if (!confirm('Tem certeza absoluta? Todos os cursos e responsáveis atuais serão perdidos!')) {
+          return;
+        }
+      } else {
+        if (!confirm(`Isso irá adicionar os dados do backup aos dados existentes.\n${backupPreviewData.data.courses ? backupPreviewData.data.courses.length : 0} curso(s) e ${backupPreviewData.data.responsibles ? Object.keys(backupPreviewData.data.responsibles).length : 0} lote(s) com responsáveis serão adicionados.\nDeseja continuar?`)) {
+          return;
+        }
+      }
+
+      try {
+        if (restoreMode === 'replace') {
+          // Replace all data
+          courses = backupPreviewData.data.courses || [];
+          lotResponsibles = backupPreviewData.data.responsibles || {};
+        } else {
+          // Merge data
+          const existingCourseIds = new Set(courses.map(c => c.id));
+          const newCourses = (backupPreviewData.data.courses || []).filter(c => !existingCourseIds.has(c.id));
+          courses = [...courses, ...newCourses];
+          
+          // Merge responsibles
+          if (backupPreviewData.data.responsibles) {
+            Object.keys(backupPreviewData.data.responsibles).forEach(lot => {
+              if (!lotResponsibles[lot]) {
+                lotResponsibles[lot] = [];
+              }
+              const existingRespIds = new Set((lotResponsibles[lot] || []).map(r => r.id));
+              const newResponsibles = (backupPreviewData.data.responsibles[lot] || []).filter(r => !existingRespIds.has(r.id));
+              lotResponsibles[lot] = [...(lotResponsibles[lot] || []), ...newResponsibles];
+            });
+          }
+        }
+
+        filteredCourses = [...courses];
+        await saveToStorage();
+        updateFilters();
+        renderAll();
+        closeRestoreModal();
+        
+        const restoredCourses = restoreMode === 'replace' ? courses.length : (backupPreviewData.data.courses || []).length;
+        const restoredResponsibles = restoreMode === 'replace' 
+          ? Object.keys(lotResponsibles).length 
+          : Object.keys(backupPreviewData.data.responsibles || {}).length;
+        
+        alert(`Backup restaurado com sucesso!\n${restoredCourses} curso(s) e ${restoredResponsibles} lote(s) com responsáveis.`);
+      } catch (error) {
+        console.error('Erro ao restaurar backup:', error);
+        document.getElementById('restore-error').textContent = `Erro ao restaurar backup: ${error.message}`;
+        document.getElementById('restore-error').classList.remove('hidden');
+      }
     }
 
     function openAddCourseModal() {
