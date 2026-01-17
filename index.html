@@ -749,7 +749,7 @@
               class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
             <input type="text" id="resp-cargo" placeholder="Cargo" 
               class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
-            <input type="tel" id="resp-phone" placeholder="Telefone (ex: 5511999999999)" 
+            <input type="tel" id="resp-phone" value="55" placeholder="Telefone (ex: 5511999999999)" 
               class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
             <button onclick="addResponsible()" class="w-full bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1042,6 +1042,7 @@
     let firebaseAuth = null;
     let unsubscribeCourses = null;
     let unsubscribeResponsibles = null;
+    window.editingResponsibleId = null; // Para controlar qual responsável está sendo editado
 
     const fieldLabels = {
       idCurso: 'ID do Curso',
@@ -2615,8 +2616,9 @@
       document.body.classList.remove('modal-open');
       document.getElementById('resp-name').value = '';
       document.getElementById('resp-cargo').value = '';
-      document.getElementById('resp-phone').value = '';
+      document.getElementById('resp-phone').value = '55';
       currentEditLot = null;
+      window.editingResponsibleId = null; // Cancel any ongoing edit
     }
 
     function renderResponsiblesList() {
@@ -2629,37 +2631,86 @@
         return;
       }
 
-      document.getElementById('responsibles-list').innerHTML = responsibles.map(r => `
-        <div class="bg-secondary/30 border border-border rounded-lg p-4">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                <span class="text-primary font-medium">${r.name.charAt(0)}</span>
-              </div>
-              <div>
-                <p class="font-medium text-foreground">${r.name}</p>
-                <p class="text-sm text-muted-foreground">${r.cargo}</p>
-                <p class="text-xs text-muted-foreground">${r.phone}</p>
+      document.getElementById('responsibles-list').innerHTML = responsibles.map(r => {
+        const isEditing = window.editingResponsibleId === r.id;
+        
+        if (isEditing) {
+          // Modo de edição
+          return `
+            <div class="bg-secondary/30 border border-primary/50 rounded-lg p-4">
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Nome</label>
+                  <input type="text" id="edit-resp-name-${r.id}" value="${r.name}" 
+                    class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Cargo</label>
+                  <input type="text" id="edit-resp-cargo-${r.id}" value="${r.cargo}" 
+                    class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Telefone</label>
+                  <input type="tel" id="edit-resp-phone-${r.id}" value="${r.phone}" 
+                    class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="saveEditResponsible('${r.id}')" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Salvar
+                  </button>
+                  <button onclick="cancelEditResponsible()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Cancelar
+                  </button>
+                </div>
               </div>
             </div>
-            <div class="flex items-center gap-2">
-              <a href="https://wa.me/${r.phone.replace(/\D/g, '')}" target="_blank" 
-                class="w-10 h-10 bg-green-600 hover:bg-green-700 rounded-lg flex items-center justify-center transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                </svg>
-              </a>
-              ${isLoggedIn ? `
-              <button onclick="removeResponsible('${r.id}')" class="w-10 h-10 bg-red-600/20 hover:bg-red-600/40 rounded-lg flex items-center justify-center transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-              ` : ''}
+          `;
+        } else {
+          // Modo de visualização
+          return `
+            <div class="bg-secondary/30 border border-border rounded-lg p-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                    <span class="text-primary font-medium">${r.name.charAt(0)}</span>
+                  </div>
+                  <div>
+                    <p class="font-medium text-foreground">${r.name}</p>
+                    <p class="text-sm text-muted-foreground">${r.cargo}</p>
+                    <p class="text-xs text-muted-foreground">${r.phone}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <a href="https://wa.me/${r.phone.replace(/\D/g, '')}" target="_blank" 
+                    class="w-10 h-10 bg-green-600 hover:bg-green-700 rounded-lg flex items-center justify-center transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    </svg>
+                  </a>
+                  ${isLoggedIn ? `
+                  <button onclick="startEditResponsible('${r.id}')" class="w-10 h-10 bg-blue-600/20 hover:bg-blue-600/40 rounded-lg flex items-center justify-center transition-colors" title="Editar responsável">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button onclick="removeResponsible('${r.id}')" class="w-10 h-10 bg-red-600/20 hover:bg-red-600/40 rounded-lg flex items-center justify-center transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                  ` : ''}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      `).join('');
+          `;
+        }
+      }).join('');
     }
 
     function addResponsible() {
@@ -2689,7 +2740,7 @@
 
       document.getElementById('resp-name').value = '';
       document.getElementById('resp-cargo').value = '';
-      document.getElementById('resp-phone').value = '';
+      document.getElementById('resp-phone').value = '55';
 
       saveToStorage(); // Save after adding responsible
       renderResponsiblesList();
@@ -2707,6 +2758,48 @@
       saveToStorage(); // Save after removing responsible
       renderResponsiblesList();
       renderLotSections();
+    }
+
+    function startEditResponsible(id) {
+      if (!isLoggedIn) {
+        openLoginModal();
+        return;
+      }
+      window.editingResponsibleId = id;
+      renderResponsiblesList();
+    }
+
+    function saveEditResponsible(id) {
+      if (!isLoggedIn) {
+        openLoginModal();
+        return;
+      }
+      
+      const name = document.getElementById(`edit-resp-name-${id}`).value.trim();
+      const cargo = document.getElementById(`edit-resp-cargo-${id}`).value.trim();
+      const phone = document.getElementById(`edit-resp-phone-${id}`).value.trim();
+
+      if (!name || !cargo || !phone) {
+        alert('Preencha todos os campos.');
+        return;
+      }
+
+      const responsibleIndex = lotResponsibles[currentEditLot].findIndex(r => r.id === id);
+      if (responsibleIndex !== -1) {
+        lotResponsibles[currentEditLot][responsibleIndex].name = name;
+        lotResponsibles[currentEditLot][responsibleIndex].cargo = cargo;
+        lotResponsibles[currentEditLot][responsibleIndex].phone = phone;
+        
+        saveToStorage(); // Save after editing responsible
+        window.editingResponsibleId = null;
+        renderResponsiblesList();
+        renderLotSections();
+      }
+    }
+
+    function cancelEditResponsible() {
+      window.editingResponsibleId = null;
+      renderResponsiblesList();
     }
 
     function downloadLotPDF(lotNumber) {
