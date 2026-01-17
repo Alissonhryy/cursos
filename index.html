@@ -693,13 +693,16 @@
     }
 
     async function loadFromFirestore() {
+      // Always load from localStorage first (as fallback)
+      const localCourses = JSON.parse(localStorage.getItem(STORAGE_KEY_COURSES)) || [];
+      const localResponsibles = JSON.parse(localStorage.getItem(STORAGE_KEY_RESPONSIBLES)) || {};
+      courses = localCourses;
+      lotResponsibles = localResponsibles;
+      filteredCourses = [...courses];
+      
       if (!window.firestore || !window.firebaseModules) {
-        // Fallback to localStorage
-        const localCourses = JSON.parse(localStorage.getItem(STORAGE_KEY_COURSES)) || [];
-        const localResponsibles = JSON.parse(localStorage.getItem(STORAGE_KEY_RESPONSIBLES)) || {};
-        courses = localCourses;
-        lotResponsibles = localResponsibles;
-        filteredCourses = [...courses];
+        console.warn('Firestore não disponível, usando localStorage');
+        renderAll();
         return;
       }
 
@@ -707,45 +710,71 @@
         const db = window.firestore;
         const { doc, getDoc } = window.firebaseModules;
         
-        // Load courses
-        const coursesDoc = await getDoc(doc(db, 'dashboard', 'courses'));
+        // Try to load courses from Firestore with timeout
+        const coursesPromise = getDoc(doc(db, 'dashboard', 'courses'));
+        const coursesTimeout = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout ao carregar cursos')), 10000)
+        );
+        
+        const coursesDoc = await Promise.race([coursesPromise, coursesTimeout]);
+        
         if (coursesDoc.exists()) {
-          courses = coursesDoc.data().data || [];
+          const firestoreCourses = coursesDoc.data().data || [];
+          if (firestoreCourses.length > 0) {
+            courses = firestoreCourses;
+            // Update localStorage as backup
+            localStorage.setItem(STORAGE_KEY_COURSES, JSON.stringify(courses));
+          }
         } else {
-          // Try to migrate from localStorage
-          const localCourses = JSON.parse(localStorage.getItem(STORAGE_KEY_COURSES)) || [];
+          // No data in Firestore, migrate from localStorage if exists
           if (localCourses.length > 0 && !dataMigrationDone) {
-            courses = localCourses;
+            console.log('Migrando dados do localStorage para Firestore...');
             await saveToFirestore();
             dataMigrationDone = true;
           }
         }
         
-        // Load responsibles
-        const responsiblesDoc = await getDoc(doc(db, 'dashboard', 'responsibles'));
+        // Try to load responsibles from Firestore with timeout
+        const responsiblesPromise = getDoc(doc(db, 'dashboard', 'responsibles'));
+        const responsiblesTimeout = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout ao carregar responsáveis')), 10000)
+        );
+        
+        const responsiblesDoc = await Promise.race([responsiblesPromise, responsiblesTimeout]);
+        
         if (responsiblesDoc.exists()) {
-          lotResponsibles = responsiblesDoc.data().data || {};
+          const firestoreResponsibles = responsiblesDoc.data().data || {};
+          if (Object.keys(firestoreResponsibles).length > 0) {
+            lotResponsibles = firestoreResponsibles;
+            // Update localStorage as backup
+            localStorage.setItem(STORAGE_KEY_RESPONSIBLES, JSON.stringify(lotResponsibles));
+          }
         } else {
-          // Try to migrate from localStorage
-          const localResponsibles = JSON.parse(localStorage.getItem(STORAGE_KEY_RESPONSIBLES)) || {};
+          // No data in Firestore, migrate from localStorage if exists
           if (Object.keys(localResponsibles).length > 0 && !dataMigrationDone) {
-            lotResponsibles = localResponsibles;
             await saveToFirestore();
             dataMigrationDone = true;
           }
         }
         
         filteredCourses = [...courses];
-        renderAll();
+        console.log('✅ Dados carregados do Firestore com sucesso');
       } catch (error) {
-        console.error('Erro ao carregar do Firestore:', error);
-        // Fallback to localStorage
-        const localCourses = JSON.parse(localStorage.getItem(STORAGE_KEY_COURSES)) || [];
-        const localResponsibles = JSON.parse(localStorage.getItem(STORAGE_KEY_RESPONSIBLES)) || {};
-        courses = localCourses;
-        lotResponsibles = localResponsibles;
-        filteredCourses = [...courses];
+        console.warn('⚠️ Erro ao carregar do Firestore (usando localStorage):', error.code || error.message);
+        
+        // If error is not-found or permission-denied, show specific message
+        if (error.code === 'not-found') {
+          console.warn('Firestore database não encontrado. Usando localStorage. Crie o banco de dados no Firebase Console.');
+        } else if (error.code === 'permission-denied') {
+          console.warn('Permissão negada no Firestore. Verifique as regras de segurança. Usando localStorage.');
+        } else if (error.message && error.message.includes('Timeout')) {
+          console.warn('Timeout ao carregar do Firestore. Usando localStorage.');
+        }
+        
+        // Keep using localStorage data (already loaded above)
       }
+      
+      renderAll();
     }
 
     let isUpdatingFromListener = false;
@@ -766,63 +795,71 @@
       if (unsubscribeCourses) unsubscribeCourses();
       if (unsubscribeResponsibles) unsubscribeResponsibles();
       
-      // Listen to courses changes
-      unsubscribeCourses = onSnapshot(
-        doc(db, 'dashboard', 'courses'),
-        (snapshot) => {
-          console.log('Listener de courses acionado', { exists: snapshot.exists() });
-          if (snapshot.exists() && !isUpdatingFromListener) {
-            const newCourses = snapshot.data().data || [];
-            const currentStr = JSON.stringify(courses.sort((a, b) => (a.id || '').localeCompare(b.id || '')));
-            const newStr = JSON.stringify(newCourses.sort((a, b) => (a.id || '').localeCompare(b.id || '')));
-            
-            if (currentStr !== newStr) {
-              console.log('Atualizando cursos via listener', { oldCount: courses.length, newCount: newCourses.length });
-              isUpdatingFromListener = true;
-              courses = newCourses;
-              filteredCourses = [...courses];
-              updateFilters();
-              applyFilters();
-              setTimeout(() => { isUpdatingFromListener = false; }, 100);
+      try {
+        // Listen to courses changes
+        unsubscribeCourses = onSnapshot(
+          doc(db, 'dashboard', 'courses'),
+          (snapshot) => {
+            if (snapshot.exists() && !isUpdatingFromListener) {
+              const newCourses = snapshot.data().data || [];
+              const currentStr = JSON.stringify(courses.sort((a, b) => (a.id || '').localeCompare(b.id || '')));
+              const newStr = JSON.stringify(newCourses.sort((a, b) => (a.id || '').localeCompare(b.id || '')));
+              
+              if (currentStr !== newStr) {
+                console.log('🔄 Atualizando cursos via listener em tempo real', { oldCount: courses.length, newCount: newCourses.length });
+                isUpdatingFromListener = true;
+                courses = newCourses;
+                filteredCourses = [...courses];
+                // Update localStorage as backup
+                localStorage.setItem(STORAGE_KEY_COURSES, JSON.stringify(courses));
+                updateFilters();
+                applyFilters();
+                setTimeout(() => { isUpdatingFromListener = false; }, 100);
+              }
             }
-          }
-        },
-        (error) => {
-          console.error('Erro no listener de courses:', error);
-          if (error.code === 'permission-denied') {
-            console.error('Permissão negada no Firestore. Verifique as regras de segurança.');
-          }
-        }
-      );
-      
-      // Listen to responsibles changes
-      unsubscribeResponsibles = onSnapshot(
-        doc(db, 'dashboard', 'responsibles'),
-        (snapshot) => {
-          console.log('Listener de responsibles acionado', { exists: snapshot.exists() });
-          if (snapshot.exists() && !isUpdatingFromListener) {
-            const newResponsibles = snapshot.data().data || {};
-            const currentStr = JSON.stringify(lotResponsibles);
-            const newStr = JSON.stringify(newResponsibles);
-            
-            if (currentStr !== newStr) {
-              console.log('Atualizando responsáveis via listener');
-              isUpdatingFromListener = true;
-              lotResponsibles = newResponsibles;
-              renderAll();
-              setTimeout(() => { isUpdatingFromListener = false; }, 100);
+          },
+          (error) => {
+            console.warn('⚠️ Erro no listener de courses (sincronização em tempo real desabilitada):', error.code || error.message);
+            if (error.code === 'permission-denied') {
+              console.warn('Permissão negada no Firestore. Verifique as regras de segurança.');
             }
+            unsubscribeCourses = null;
           }
-        },
-        (error) => {
-          console.error('Erro no listener de responsibles:', error);
-          if (error.code === 'permission-denied') {
-            console.error('Permissão negada no Firestore. Verifique as regras de segurança.');
+        );
+        
+        // Listen to responsibles changes
+        unsubscribeResponsibles = onSnapshot(
+          doc(db, 'dashboard', 'responsibles'),
+          (snapshot) => {
+            if (snapshot.exists() && !isUpdatingFromListener) {
+              const newResponsibles = snapshot.data().data || {};
+              const currentStr = JSON.stringify(lotResponsibles);
+              const newStr = JSON.stringify(newResponsibles);
+              
+              if (currentStr !== newStr) {
+                console.log('🔄 Atualizando responsáveis via listener em tempo real');
+                isUpdatingFromListener = true;
+                lotResponsibles = newResponsibles;
+                // Update localStorage as backup
+                localStorage.setItem(STORAGE_KEY_RESPONSIBLES, JSON.stringify(lotResponsibles));
+                renderAll();
+                setTimeout(() => { isUpdatingFromListener = false; }, 100);
+              }
+            }
+          },
+          (error) => {
+            console.warn('⚠️ Erro no listener de responsibles (sincronização em tempo real desabilitada):', error.code || error.message);
+            if (error.code === 'permission-denied') {
+              console.warn('Permissão negada no Firestore. Verifique as regras de segurança.');
+            }
+            unsubscribeResponsibles = null;
           }
-        }
-      );
-      
-      console.log('Listeners em tempo real configurados com sucesso');
+        );
+        
+        console.log('✅ Listeners em tempo real configurados com sucesso');
+      } catch (error) {
+        console.error('Erro ao configurar listeners:', error);
+      }
     }
 
     // Firebase Authentication
@@ -996,31 +1033,32 @@
           await checkFirebaseAuth();
         }
         
-        // Load data from Firestore (or localStorage as fallback)
+        // Load data (tries Firestore first, falls back to localStorage)
         await loadFromFirestore();
         
-        // Verify Firestore connection
-        if (window.firestore && window.firebaseModules) {
-          console.log('✅ Firestore conectado e pronto');
-          const { doc, getDoc } = window.firebaseModules;
-          const db = window.firestore;
-          
-          // Test read access
-          try {
-            const testDoc = await getDoc(doc(db, 'dashboard', 'courses'));
-            console.log('✅ Acesso de leitura ao Firestore OK', { exists: testDoc.exists() });
-          } catch (error) {
-            console.error('❌ Erro ao acessar Firestore:', error);
-            if (error.code === 'permission-denied') {
-              alert('⚠️ Erro: Permissão negada no Firestore. Verifique as regras de segurança no Firebase Console.');
-            }
-          }
-        } else {
-          console.warn('⚠️ Firestore não disponível - usando localStorage (sem sincronização)');
-        }
+        // Set up real-time listeners for synchronization (non-blocking)
+        setTimeout(() => {
+          setupRealtimeListeners();
+        }, 500);
         
-        // Set up real-time listeners for synchronization
-        setupRealtimeListeners();
+        // Verify Firestore connection in background (non-blocking, for logging only)
+        if (window.firestore && window.firebaseModules) {
+          setTimeout(async () => {
+            try {
+              const { doc, getDoc } = window.firebaseModules;
+              const db = window.firestore;
+              const testDoc = await getDoc(doc(db, 'dashboard', 'courses'));
+              console.log('✅ Firestore funcionando corretamente', { exists: testDoc.exists() });
+            } catch (error) {
+              console.warn('⚠️ Firestore não acessível:', error.code || error.message);
+              if (error.code === 'permission-denied') {
+                console.warn('💡 Configure as regras: allow read, write: if true; (temporário para teste)');
+              } else if (error.code === 'not-found') {
+                console.warn('💡 Crie o banco Firestore em: Firebase Console → Firestore Database');
+              }
+            }
+          }, 2000);
+        }
         
         // Hide loading screen
         document.getElementById('loading-screen').classList.add('hidden');
