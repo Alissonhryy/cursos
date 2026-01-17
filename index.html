@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Gestão de Cursos Profissionalizantes</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Firebase SDK -->
+  <script type="module">
+    // Configuração do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCM_Rsyp70C4u3OtOLz7SN3fBwz-m5Ii8Q",
+      authDomain: "cursos-84a11.firebaseapp.com",
+      projectId: "cursos-84a11",
+      storageBucket: "cursos-84a11.firebasestorage.app",
+      messagingSenderId: "43991037761",
+      appId: "1:43991037761:web:a6d3ba956770d3182fd3c0",
+      measurementId: "G-BS1Z6FJ1JZ"
+    };
+
+    // Load Firebase modules
+    Promise.all([
+      import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js')
+    ]).then(([firebaseApp, firebaseAuth]) => {
+      // Initialize Firebase
+      window.firebaseApp = firebaseApp.initializeApp(firebaseConfig);
+      window.firebaseAuth = firebaseAuth.getAuth(window.firebaseApp);
+      window.firebaseModules = {
+        signInWithEmailAndPassword: firebaseAuth.signInWithEmailAndPassword,
+        signOut: firebaseAuth.signOut,
+        onAuthStateChanged: firebaseAuth.onAuthStateChanged
+      };
+      
+      // Trigger ready event
+      window.dispatchEvent(new Event('firebase-ready'));
+    }).catch(error => {
+      console.error('Erro ao carregar Firebase:', error);
+    });
+  </script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            background: '#0a0f1a',
+            foreground: '#f8fafc',
+            card: '#111827',
+            'card-foreground': '#f8fafc',
+            primary: '#3b82f6',
+            'primary-foreground': '#ffffff',
+            secondary: '#1e293b',
+            'secondary-foreground': '#f8fafc',
+            muted: '#1e293b',
+            'muted-foreground': '#94a3b8',
+            border: '#1e3a5f',
+            input: '#1e293b',
+            ring: '#3b82f6',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #0a0f1a; color: #f8fafc; }
+    .modal-overlay { background: rgba(0,0,0,0.7); }
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: #1e293b; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 3px; }
+    select option { background: #111827; color: #f8fafc; }
+    .tab-btn { transition: all 0.2s; }
+    .tab-btn.active { border-color: #3b82f6; color: #3b82f6; }
+  </style>
+</head>
+<body class="min-h-screen">
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="fixed inset-0 z-50 bg-background flex items-center justify-center">
+    <div class="text-center">
+      <div class="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <p class="text-foreground text-lg font-medium">Carregando...</p>
+    </div>
+  </div>
+
+  <!-- Login Modal -->
+  <div id="login-modal" class="fixed inset-0 z-50 hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeLoginModal()"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-card border border-border rounded-lg shadow-xl overflow-hidden">
+      <div class="p-6">
+        <div class="text-center mb-6">
+          <div class="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <h2 class="text-2xl font-bold text-foreground mb-2">Login Administrativo</h2>
+          <p class="text-sm text-muted-foreground">Faça login para acessar funções administrativas</p>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-2">E-mail</label>
+            <input type="email" id="login-email" placeholder="Digite seu e-mail" 
+              class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              onkeypress="if(event.key === 'Enter') handleLogin()">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-2">Senha</label>
+            <input type="password" id="login-password" placeholder="Digite sua senha" 
+              class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              onkeypress="if(event.key === 'Enter') handleLogin()">
+          </div>
+          <div class="flex items-center">
+            <input type="checkbox" id="remember-login" class="w-4 h-4 text-primary bg-input border-border rounded focus:ring-primary">
+            <label for="remember-login" class="ml-2 text-sm text-muted-foreground">Manter-me logado</label>
+          </div>
+          <button onclick="handleLogin()" class="w-full bg-primary hover:bg-primary/90 text-white px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+            </svg>
+            Entrar
+          </button>
+        </div>
+        <div id="login-error" class="mt-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="app" class="hidden">
+    <!-- Header -->
+    <header class="border-b border-border bg-card sticky top-0 z-40">
+      <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold text-foreground">Gestão de Cursos</h1>
+            <p class="text-sm text-muted-foreground">Cursos Profissionalizantes por Lote</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn active flex items-center gap-2 px-4 py-2 border-b-2 border-transparent hover:text-primary transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+            Dashboard
+          </button>
+          <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn admin-only flex items-center gap-2 px-4 py-2 border-b-2 border-transparent hover:text-primary transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31 .826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Configurações
+          </button>
+          <button onclick="handleLogout()" id="logout-btn" class="admin-only flex items-center gap-2 px-4 py-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Sair
+          </button>
+          <button onclick="openLoginModal()" id="login-btn" class="view-only flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Login
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Dashboard Tab Content -->
+    <main id="content-dashboard" class="container mx-auto px-4 py-6 space-y-6">
+      <!-- Action Buttons -->
+      <div class="admin-only flex flex-wrap gap-3">
+        <button onclick="openImportModal()" class="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+          Importar Planilha
+        </button>
+        <button onclick="openAddCourseModal()" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Adicionar Curso
+        </button>
+      </div>
+
+      <!-- Stats Cards -->
+      <div id="stats-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+
+      <!-- Filters -->
+      <div class="bg-card border border-border rounded-lg p-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-2">Buscar Tipologia</label>
+            <input type="text" id="filter-search" placeholder="Digite para buscar..." 
+              class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary" 
+              oninput="applyFilters()">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-2">Lote</label>
+            <select id="filter-lote" class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary" onchange="applyFilters()">
+              <option value="">Todos os Lotes</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-2">Município</label>
+            <select id="filter-municipio" class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary" onchange="applyFilters()">
+              <option value="">Todos os Municípios</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-2">Status</label>
+            <select id="filter-status" class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary" onchange="applyFilters()">
+              <option value="">Todos os Status</option>
+              <option value="Concluído">Concluído</option>
+              <option value="Pendente">Pendente</option>
+              <option value="Em andamento">Em andamento</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lot Sections -->
+      <div id="lot-sections" class="space-y-4"></div>
+    </main>
+
+    <!-- Settings Tab Content -->
+    <main id="content-settings" class="container mx-auto px-4 py-6 space-y-6 hidden">
+      <div class="bg-card border border-border rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-foreground mb-6">Configurações</h2>
+        
+        <div class="border border-red-500/30 rounded-lg p-4 bg-red-500/5">
+          <h3 class="text-lg font-medium text-red-400 mb-2">Zona de Perigo</h3>
+          <p class="text-sm text-muted-foreground mb-4">Ações irreversíveis. Tenha cuidado ao executar.</p>
+          
+          <div class="space-y-4">
+            <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
+              <div>
+                <p class="font-medium text-foreground">Excluir Todos os Cursos</p>
+                <p class="text-sm text-muted-foreground">Remove todos os cursos cadastrados no sistema.</p>
+              </div>
+              <button onclick="deleteAllCourses()" class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Excluir Cursos
+              </button>
+            </div>
+            
+            <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
+              <div>
+                <p class="font-medium text-foreground">Excluir Todos os Responsáveis</p>
+                <p class="text-sm text-muted-foreground">Remove todos os responsáveis de todos os lotes.</p>
+              </div>
+              <button onclick="deleteAllResponsibles()" class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Excluir Responsáveis
+              </button>
+            </div>
+            
+            <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-lg border border-red-500/50">
+              <div>
+                <p class="font-medium text-red-400">Excluir Todos os Dados</p>
+                <p class="text-sm text-muted-foreground">Remove todos os cursos e responsáveis do sistema.</p>
+              </div>
+              <button onclick="deleteAllData()" class="flex items-center gap-2 bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                Excluir Tudo
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Import Modal -->
+  <div id="import-modal" class="fixed inset-0 z-50 hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeImportModal()"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl max-h-[90vh] bg-card border border-border rounded-lg shadow-xl overflow-hidden">
+      <div class="flex items-center justify-between p-4 border-b border-border">
+        <div>
+          <h2 class="text-lg font-semibold text-foreground">Importação Inteligente de Planilha</h2>
+          <p class="text-sm text-muted-foreground">Mapeie as colunas da sua planilha</p>
+        </div>
+        <button onclick="closeImportModal()" class="p-2 hover:bg-secondary rounded-lg transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="p-4 overflow-y-auto max-h-[70vh] scrollbar-thin">
+        <!-- Step 1: Upload -->
+        <div id="import-step-1">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-medium">1</span>
+            <span class="text-foreground font-medium">Selecione o arquivo</span>
+          </div>
+          <div class="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto text-muted-foreground mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <p class="text-muted-foreground mb-2">Arraste e solte seu arquivo aqui ou</p>
+            <input type="file" id="file-input" accept=".csv,.xlsx,.xls" class="hidden" onchange="handleFileUpload(event)">
+            <button onclick="document.getElementById('file-input').click()" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-colors">
+              Selecionar Arquivo
+            </button>
+            <p class="text-xs text-muted-foreground mt-2">Formatos suportados: CSV, XLSX, XLS</p>
+          </div>
+        </div>
+
+        <!-- Step 2: Mapping -->
+        <div id="import-step-2" class="hidden">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-medium">2</span>
+            <span class="text-foreground font-medium">Mapeamento de Colunas</span>
+          </div>
+          <p class="text-sm text-muted-foreground mb-4">Associe as colunas da sua planilha aos campos do sistema:</p>
+          <div id="mapping-fields" class="space-y-3"></div>
+          <div class="flex justify-between mt-6">
+            <button onclick="backToStep1()" class="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-secondary transition-colors">
+              Voltar
+            </button>
+            <button onclick="goToStep3()" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-colors">
+              Pré-visualizar
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3: Preview -->
+        <div id="import-step-3" class="hidden">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-medium">3</span>
+            <span class="text-foreground font-medium">Pré-visualização</span>
+          </div>
+          <p class="text-sm text-muted-foreground mb-4">Confira os dados antes de importar (primeiros 5 registros):</p>
+          <div class="overflow-x-auto">
+            <table id="preview-table" class="w-full text-sm"></table>
+          </div>
+          <div class="flex justify-between mt-6">
+            <button onclick="backToStep2()" class="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-secondary transition-colors">
+              Voltar
+            </button>
+            <button onclick="confirmImport()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+              Confirmar Importação
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Responsibles Modal -->
+  <div id="responsibles-modal" class="fixed inset-0 z-50 hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeResponsiblesModal()"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg max-h-[90vh] bg-card border border-border rounded-lg shadow-xl overflow-hidden">
+      <div class="flex items-center justify-between p-4 border-b border-border">
+        <div>
+          <h2 class="text-lg font-semibold text-foreground">Responsáveis do <span id="modal-lot-name"></span></h2>
+          <p class="text-sm text-muted-foreground">Gerencie os responsáveis deste lote</p>
+        </div>
+        <button onclick="closeResponsiblesModal()" class="p-2 hover:bg-secondary rounded-lg transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="p-4 overflow-y-auto max-h-[60vh] scrollbar-thin">
+        <!-- Informações Adicionais dos Cursos -->
+        <div id="lot-course-info" class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-4">
+          <h3 class="text-sm font-medium text-foreground mb-3">Informações dos Cursos do Lote</h3>
+          <div id="lot-course-info-content" class="space-y-2 text-sm text-muted-foreground">
+            <!-- Informações serão carregadas aqui -->
+          </div>
+        </div>
+        
+        <div id="add-responsible-section" class="bg-secondary/50 border border-border rounded-lg p-4 mb-4">
+          <h3 class="text-sm font-medium text-foreground mb-3">Adicionar Responsável</h3>
+          <div class="space-y-3">
+            <input type="text" id="resp-name" placeholder="Nome completo" 
+              class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            <input type="text" id="resp-cargo" placeholder="Cargo" 
+              class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            <input type="text" id="resp-phone" placeholder="Telefone (ex: 5511999999999)" 
+              class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            <button onclick="addResponsible()" class="w-full bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Adicionar
+            </button>
+          </div>
+        </div>
+
+        <div id="responsibles-list" class="space-y-3"></div>
+
+        <div id="delete-lot-section" class="mt-6 pt-4 border-t border-border">
+          <button onclick="deleteLot()" class="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Excluir Lote Inteiro
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Course Modal -->
+  <div id="add-course-modal" class="fixed inset-0 z-50 hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeAddCourseModal(event)"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg max-h-[90vh] bg-card border border-border rounded-lg shadow-xl overflow-hidden">
+      <div class="flex items-center justify-between p-4 border-b border-border">
+        <div>
+          <h2 class="text-lg font-semibold text-foreground">Adicionar Novo Curso</h2>
+          <p class="text-sm text-muted-foreground">Preencha os dados do curso</p>
+        </div>
+        <button onclick="closeAddCourseModal()" class="p-2 hover:bg-secondary rounded-lg transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="p-4 overflow-y-auto max-h-[70vh] scrollbar-thin space-y-4">
+        <!-- Added ID field to add course modal -->
+        <div>
+          <label class="block text-sm font-medium text-muted-foreground mb-2">ID do Curso</label>
+          <input type="text" id="course-id" placeholder="Ex: CURSO-001" 
+            class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-muted-foreground mb-2">Tipologia *</label>
+          <input type="text" id="course-tipologia" placeholder="Ex: Técnico em Informática" 
+            class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-2">Carga Horária *</label>
+            <input type="number" id="course-carga" placeholder="Ex: 1200" 
+              class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-2">Lote *</label>
+            <input type="number" id="course-lote" placeholder="Ex: 1" 
+              class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-2">Data Início</label>
+            <input type="date" id="course-inicio" 
+              class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-2">Data Fim</label>
+            <input type="date" id="course-fim" 
+              class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-muted-foreground mb-2">Município *</label>
+          <input type="text" id="course-municipio" placeholder="Ex: São Paulo" 
+            class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-muted-foreground mb-2">Cozinha</label>
+          <input type="text" id="course-cozinha" placeholder="Ex: Cozinha 1" 
+            class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-2">Status</label>
+            <select id="course-status" class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+              <option value="Pendente">Pendente</option>
+              <option value="Em andamento">Em andamento</option>
+              <option value="Concluído">Concluído</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-2">Concludentes</label>
+            <input type="number" id="course-concludentes" placeholder="Ex: 30" 
+              class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+          </div>
+        </div>
+        <button onclick="saveCourse()" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 mt-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          Salvar Curso
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    
+    const STORAGE_KEY_COURSES = 'dashboard_courses';
+    const STORAGE_KEY_RESPONSIBLES = 'dashboard_responsibles';
+
+    // Load data from localStorage or start empty
+    let courses = JSON.parse(localStorage.getItem(STORAGE_KEY_COURSES)) || [];
+    let lotResponsibles = JSON.parse(localStorage.getItem(STORAGE_KEY_RESPONSIBLES)) || {};
+    let filteredCourses = [...courses];
+    
+    let currentEditLot = null;
+    let uploadedData = [];
+    let fileColumns = [];
+    let columnMapping = {};
+    let isLoggedIn = false;
+    let firebaseAuth = null;
+
+    const fieldLabels = {
+      idCurso: 'ID do Curso',
+      tipologia: 'Tipologia',
+      cargaHoraria: 'Carga Horária',
+      dataInicio: 'Data Início',
+      dataFim: 'Data Fim',
+      municipio: 'Município',
+      lote: 'Lote',
+      status: 'Status',
+      concludentes: 'Concludentes',
+      cozinha: 'Cozinha'
+    };
+
+    function saveToStorage() {
+      localStorage.setItem(STORAGE_KEY_COURSES, JSON.stringify(courses));
+      localStorage.setItem(STORAGE_KEY_RESPONSIBLES, JSON.stringify(lotResponsibles));
+    }
+
+    // Firebase Authentication
+    async function checkFirebaseAuth() {
+      try {
+        if (window.firebaseAuth && window.firebaseModules) {
+          return new Promise((resolve) => {
+            window.firebaseModules.onAuthStateChanged(window.firebaseAuth, (user) => {
+              isLoggedIn = !!user;
+              updateUIForLoginStatus();
+              renderAll();
+              resolve(!!user);
+            });
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao verificar autenticação Firebase:', error);
+        isLoggedIn = false;
+        return false;
+      }
+      return false;
+    }
+
+    function updateUIForLoginStatus() {
+      const adminElements = document.querySelectorAll('.admin-only');
+      const viewElements = document.querySelectorAll('.view-only');
+      
+      // Update responsibles modal sections
+      const addRespSection = document.getElementById('add-responsible-section');
+      const deleteLotSection = document.getElementById('delete-lot-section');
+      
+      if (isLoggedIn) {
+        // Show admin elements, hide view-only elements
+        adminElements.forEach(el => {
+          el.classList.remove('hidden');
+          el.style.display = '';
+        });
+        viewElements.forEach(el => {
+          el.classList.add('hidden');
+          el.style.display = 'none';
+        });
+        
+        // Show modal admin sections
+        if (addRespSection) addRespSection.style.display = 'block';
+        if (deleteLotSection) deleteLotSection.style.display = 'block';
+      } else {
+        // Hide admin elements, show view-only elements
+        adminElements.forEach(el => {
+          el.classList.add('hidden');
+          el.style.display = 'none';
+        });
+        viewElements.forEach(el => {
+          el.classList.remove('hidden');
+          el.style.display = '';
+        });
+        
+        // Hide modal admin sections
+        if (addRespSection) addRespSection.style.display = 'none';
+        if (deleteLotSection) deleteLotSection.style.display = 'none';
+      }
+    }
+
+    function openLoginModal() {
+      document.getElementById('login-modal').classList.remove('hidden');
+      document.getElementById('login-error').classList.add('hidden');
+      document.getElementById('login-email').value = '';
+      document.getElementById('login-password').value = '';
+    }
+
+    function closeLoginModal() {
+      document.getElementById('login-modal').classList.add('hidden');
+    }
+
+    async function handleLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value.trim();
+      const remember = document.getElementById('remember-login')?.checked || false;
+      const errorDiv = document.getElementById('login-error');
+
+      if (!email || !password) {
+        errorDiv.textContent = 'Por favor, preencha todos os campos.';
+        errorDiv.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        if (!window.firebaseAuth || !window.firebaseModules) {
+          errorDiv.textContent = 'Firebase não está configurado. Configure as credenciais do Firebase no código.';
+          errorDiv.classList.remove('hidden');
+          return;
+        }
+
+        // Set persistence based on remember checkbox
+        const { setPersistence, browserLocalPersistence, browserSessionPersistence } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        const persistence = remember ? browserLocalPersistence : browserSessionPersistence;
+        await setPersistence(window.firebaseAuth, persistence);
+
+        errorDiv.textContent = 'Entrando...';
+        errorDiv.classList.remove('hidden');
+        errorDiv.classList.remove('bg-red-500/20', 'border-red-500/50', 'text-red-400');
+        errorDiv.classList.add('bg-blue-500/20', 'border-blue-500/50', 'text-blue-400');
+
+        await window.firebaseModules.signInWithEmailAndPassword(window.firebaseAuth, email, password);
+        
+        // Success - auth state will be updated by onAuthStateChanged
+        closeLoginModal();
+      } catch (error) {
+        console.error('Erro no login:', error);
+        errorDiv.classList.remove('bg-blue-500/20', 'border-blue-500/50', 'text-blue-400');
+        errorDiv.classList.add('bg-red-500/20', 'border-red-500/50', 'text-red-400');
+        
+        let errorMessage = 'Erro ao fazer login.';
+        if (error.code === 'auth/user-not-found') {
+          errorMessage = 'Usuário não encontrado.';
+        } else if (error.code === 'auth/wrong-password') {
+          errorMessage = 'Senha incorreta.';
+        } else if (error.code === 'auth/invalid-email') {
+          errorMessage = 'E-mail inválido.';
+        } else if (error.code === 'auth/too-many-requests') {
+          errorMessage = 'Muitas tentativas. Tente novamente mais tarde.';
+        } else if (error.code === 'auth/invalid-credential') {
+          errorMessage = 'Credenciais inválidas. Verifique seu e-mail e senha.';
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        errorDiv.textContent = errorMessage;
+        errorDiv.classList.remove('hidden');
+      }
+    }
+
+    async function handleLogout() {
+      if (!confirm('Deseja fazer logout?')) return;
+      
+      try {
+        if (window.firebaseAuth && window.firebaseModules) {
+          await window.firebaseModules.signOut(window.firebaseAuth);
+          // Auth state will be updated by onAuthStateChanged
+        }
+      } catch (error) {
+        console.error('Erro ao fazer logout:', error);
+        alert('Erro ao fazer logout. Tente novamente.');
+      }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Show loading screen
+      setTimeout(async () => {
+        // Wait for Firebase to be ready
+        await new Promise((resolve) => {
+          if (window.firebaseAuth && window.firebaseModules) {
+            resolve();
+          } else {
+            window.addEventListener('firebase-ready', resolve, { once: true });
+            // Timeout after 3 seconds
+            setTimeout(resolve, 3000);
+          }
+        });
+        
+        // Check Firebase auth status and set up listener
+        if (window.firebaseAuth && window.firebaseModules) {
+          // Set up auth state listener
+          window.firebaseModules.onAuthStateChanged(window.firebaseAuth, (user) => {
+            isLoggedIn = !!user;
+            updateUIForLoginStatus();
+            renderAll();
+          });
+          
+          // Check initial auth state
+          await checkFirebaseAuth();
+        }
+        
+        // Hide loading screen
+        document.getElementById('loading-screen').classList.add('hidden');
+        
+        // Show app
+        document.getElementById('app').classList.remove('hidden');
+        
+        // Update UI based on login status (initial state - not logged in by default)
+        updateUIForLoginStatus();
+        
+        // Initialize filters and render
+        updateFilters();
+        renderAll();
+      }, 800); // Simulate loading time
+    });
+
+    function switchTab(tab) {
+      document.getElementById('tab-dashboard').classList.remove('active');
+      document.getElementById('tab-settings').classList.remove('active');
+      document.getElementById('content-dashboard').classList.add('hidden');
+      document.getElementById('content-settings').classList.add('hidden');
+
+      document.getElementById(`tab-${tab}`).classList.add('active');
+      document.getElementById(`content-${tab}`).classList.remove('hidden');
+    }
+
+    function renderAll() {
+      renderStats();
+      renderLotSections();
+      updateUIForLoginStatus(); // Ensure UI reflects login status after render
+    }
+
+    function normalizeStatus(status) {
+      if (!status) return '';
+      return String(status).trim().toLowerCase();
+    }
+
+    function renderStats() {
+      const total = filteredCourses.length;
+      const completed = filteredCourses.filter(c => normalizeStatus(c.status) === 'concluído').length;
+      const pending = filteredCourses.filter(c => normalizeStatus(c.status) === 'pendente').length;
+      const inProgress = filteredCourses.filter(c => {
+        const normalized = normalizeStatus(c.status);
+        return normalized === 'em andamento' || normalized === 'em andamento.';
+      }).length;
+      
+      // Debug: Log status variations found
+      if (inProgress === 0 && total > 0) {
+        const statusVariations = [...new Set(filteredCourses.map(c => c.status).filter(s => s))];
+        const statusVariationsNormalized = [...new Set(filteredCourses.map(c => normalizeStatus(c.status)).filter(s => s))];
+        // Only log if there are status values but no matches for "em andamento"
+        if (statusVariationsNormalized.some(s => s.includes('andamento'))) {
+          console.log('Status variations found:', statusVariations);
+          console.log('Normalized status variations:', statusVariationsNormalized);
+        }
+      }
+
+      document.getElementById('stats-cards').innerHTML = `
+        <div class="bg-card border border-border rounded-lg p-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-muted-foreground">Total de Cursos</p>
+              <p class="text-3xl font-bold text-foreground">${total}</p>
+            </div>
+            <div class="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="bg-card border border-border rounded-lg p-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-muted-foreground">Concluídos</p>
+              <p class="text-3xl font-bold text-green-500">${completed}</p>
+            </div>
+            <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="bg-card border border-border rounded-lg p-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-muted-foreground">Pendentes</p>
+              <p class="text-3xl font-bold text-orange-500">${pending}</p>
+            </div>
+            <div class="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="bg-card border border-border rounded-lg p-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-muted-foreground">Em Andamento</p>
+              <p class="text-3xl font-bold text-blue-500">${inProgress}</p>
+            </div>
+            <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLotSections() {
+      const lots = [...new Set(filteredCourses.map(c => c.lote))].sort((a, b) => a - b);
+      
+      if (lots.length === 0) {
+        document.getElementById('lot-sections').innerHTML = `
+          <div class="text-center py-12 text-muted-foreground">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p class="text-lg">Nenhum curso cadastrado.</p>
+            <p class="text-sm mt-2">Importe uma planilha ou adicione cursos manualmente.</p>
+          </div>
+        `;
+        return;
+      }
+
+      document.getElementById('lot-sections').innerHTML = lots.map(lot => {
+        const lotCourses = filteredCourses.filter(c => c.lote === lot);
+        const responsibles = lotResponsibles[lot] || [];
+        
+        return `
+          <div class="bg-card border border-border rounded-lg overflow-hidden">
+            <div class="p-4 border-b border-border">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+                    <span class="text-primary font-bold">${lot}</span>
+                  </div>
+                  <div>
+                    <h2 class="text-lg font-semibold text-foreground">Lote ${lot}</h2>
+                    <p class="text-sm text-muted-foreground">${lotCourses.length} curso(s)</p>
+                  </div>
+                </div>
+                ${isLoggedIn ? `
+                <button onclick="openResponsiblesModal(${lot})" class="flex items-center gap-2 px-3 py-2 border border-border rounded-lg hover:bg-secondary transition-colors text-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Responsáveis (${responsibles.length})
+                </button>
+                ` : `
+                <div class="flex items-center gap-2 px-3 py-2 text-muted-foreground text-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Responsáveis (${responsibles.length})
+                </div>
+                `}
+              </div>
+              
+              ${responsibles.length > 0 ? `
+                <div class="mt-4 flex flex-wrap gap-2">
+                  ${responsibles.map(r => `
+                    <div class="flex items-center gap-2 bg-secondary/50 border border-border rounded-lg px-3 py-2">
+                      <div class="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
+                        <span class="text-primary text-sm font-medium">${r.name.charAt(0)}</span>
+                      </div>
+                      <div>
+                        <p class="text-sm font-medium text-foreground">${r.name}</p>
+                        <p class="text-xs text-muted-foreground">${r.cargo}</p>
+                      </div>
+                      <a href="https://wa.me/${r.phone.replace(/\D/g, '')}" target="_blank" 
+                        class="ml-2 w-8 h-8 bg-green-600 hover:bg-green-700 rounded-full flex items-center justify-center transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                        </svg>
+                      </a>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
+            </div>
+            
+            <!-- Desktop Table -->
+            <div class="hidden md:block overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-secondary/50">
+                  <tr>
+                    <!-- Added ID column to table header -->
+                    <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">ID</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Tipologia</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Carga Horária</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Início</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Fim</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Município</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Cozinha</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Concludentes</th>
+                    ${isLoggedIn ? '<th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Ações</th>' : ''}
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-border">
+                  ${lotCourses.map(course => `
+                    <tr class="hover:bg-secondary/30 transition-colors">
+                      <!-- Added ID column to table row -->
+                      <td class="px-4 py-3 text-muted-foreground font-mono text-xs">${course.idCurso || '-'}</td>
+                      <td class="px-4 py-3 text-foreground font-medium">${course.tipologia}</td>
+                      <td class="px-4 py-3 text-muted-foreground">${course.cargaHoraria}h</td>
+                      <td class="px-4 py-3 text-muted-foreground">${course.dataInicio ? formatDate(course.dataInicio) : '-'}</td>
+                      <td class="px-4 py-3 text-muted-foreground">${course.dataFim ? formatDate(course.dataFim) : '-'}</td>
+                      <td class="px-4 py-3 text-muted-foreground">${course.municipio}</td>
+                      <td class="px-4 py-3 text-muted-foreground">${course.cozinha || '-'}</td>
+                      <td class="px-4 py-3">${getStatusBadge(course.status)}</td>
+                      <td class="px-4 py-3 text-muted-foreground">${course.concludentes !== null ? course.concludentes : '-'}</td>
+                      ${isLoggedIn ? `
+                      <td class="px-4 py-3">
+                        <button onclick="deleteCourse('${course.id}')" class="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors" title="Excluir curso">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </td>
+                      ` : ''}
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Mobile Cards -->
+            <div class="md:hidden p-4 space-y-3">
+              ${lotCourses.map(course => `
+                <div class="bg-secondary/30 border border-border rounded-lg p-4 space-y-3">
+                  <div class="flex items-start justify-between">
+                    <div>
+                      <h3 class="font-medium text-foreground">${course.tipologia}</h3>
+                      <!-- Added ID display in mobile card -->
+                      <p class="text-xs text-muted-foreground font-mono">ID: ${course.idCurso || '-'}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      ${getStatusBadge(course.status)}
+                      ${isLoggedIn ? `
+                      <button onclick="deleteCourse('${course.id}')" class="p-1 text-red-400 hover:bg-red-500/20 rounded transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                      ` : ''}
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <p class="text-muted-foreground">Carga Horária</p>
+                      <p class="text-foreground">${course.cargaHoraria}h</p>
+                    </div>
+                    <div>
+                      <p class="text-muted-foreground">Município</p>
+                      <p class="text-foreground">${course.municipio}</p>
+                    </div>
+                    <div>
+                      <p class="text-muted-foreground">Cozinha</p>
+                      <p class="text-foreground">${course.cozinha || '-'}</p>
+                    </div>
+                    <div>
+                      <p class="text-muted-foreground">Início</p>
+                      <p class="text-foreground">${course.dataInicio ? formatDate(course.dataInicio) : '-'}</p>
+                    </div>
+                    <div>
+                      <p class="text-muted-foreground">Fim</p>
+                      <p class="text-foreground">${course.dataFim ? formatDate(course.dataFim) : '-'}</p>
+                    </div>
+                    <div>
+                      <p class="text-muted-foreground">Concludentes</p>
+                      <p class="text-foreground">${course.concludentes !== null ? course.concludentes : '-'}</p>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function getStatusBadge(status) {
+      if (!status) status = 'Pendente';
+      const normalized = normalizeStatus(status);
+      const statusMap = {
+        'concluído': { label: 'Concluído', style: 'bg-green-500/20 text-green-400 border-green-500/30' },
+        'pendente': { label: 'Pendente', style: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+        'em andamento': { label: 'Em andamento', style: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+        'em andamento.': { label: 'Em andamento', style: 'bg-blue-500/20 text-blue-400 border-blue-500/30' }
+      };
+      
+      const statusInfo = statusMap[normalized] || { label: String(status).trim() || 'Pendente', style: 'bg-gray-500/20 text-gray-400 border-gray-500/30' };
+      return `<span class="inline-flex px-2 py-1 text-xs font-medium rounded-full border ${statusInfo.style}">${statusInfo.label}</span>`;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('pt-BR');
+    }
+
+    function updateFilters() {
+      const lots = [...new Set(courses.map(c => c.lote))].sort((a, b) => a - b);
+      const municipios = [...new Set(courses.map(c => c.municipio))].filter(m => m).sort();
+
+      const loteSelect = document.getElementById('filter-lote');
+      loteSelect.innerHTML = '<option value="">Todos os Lotes</option>' + 
+        lots.map(l => `<option value="${l}">Lote ${l}</option>`).join('');
+
+      const municipioSelect = document.getElementById('filter-municipio');
+      municipioSelect.innerHTML = '<option value="">Todos os Municípios</option>' + 
+        municipios.map(m => `<option value="${m}">${m}</option>`).join('');
+    }
+
+    function applyFilters() {
+      const search = document.getElementById('filter-search').value.toLowerCase();
+      const lote = document.getElementById('filter-lote').value;
+      const municipio = document.getElementById('filter-municipio').value;
+      const status = document.getElementById('filter-status').value;
+
+      filteredCourses = courses.filter(course => {
+        if (lote && String(course.lote) !== lote) return false;
+        if (municipio && course.municipio !== municipio) return false;
+        if (status && course.status !== status) return false;
+        if (search && !course.tipologia.toLowerCase().includes(search)) return false;
+        return true;
+      });
+
+      renderAll();
+    }
+
+    function deleteCourse(id) {
+      if (!isLoggedIn) {
+        openLoginModal();
+        return;
+      }
+      if (!confirm('Deseja excluir este curso?')) return;
+      courses = courses.filter(c => c.id !== id);
+      filteredCourses = filteredCourses.filter(c => c.id !== id);
+      saveToStorage(); // Save after deletion
+      updateFilters();
+      renderAll();
+    }
+
+    function deleteLot() {
+      if (!confirm(`Deseja excluir o Lote ${currentEditLot} inteiro? Todos os cursos e responsáveis serão removidos.`)) return;
+      courses = courses.filter(c => c.lote !== currentEditLot);
+      filteredCourses = filteredCourses.filter(c => c.lote !== currentEditLot);
+      delete lotResponsibles[currentEditLot];
+      saveToStorage(); // Save after deletion
+      closeResponsiblesModal();
+      updateFilters();
+      renderAll();
+    }
+
+    function deleteAllCourses() {
+      if (!confirm('Deseja excluir TODOS os cursos? Esta ação não pode ser desfeita.')) return;
+      courses = [];
+      filteredCourses = [];
+      saveToStorage(); // Save after deletion
+      updateFilters();
+      renderAll();
+      alert('Todos os cursos foram excluídos.');
+    }
+
+    function deleteAllResponsibles() {
+      if (!confirm('Deseja excluir TODOS os responsáveis de todos os lotes? Esta ação não pode ser desfeita.')) return;
+      lotResponsibles = {};
+      saveToStorage(); // Save after deletion
+      renderAll();
+      alert('Todos os responsáveis foram excluídos.');
+    }
+
+    function deleteAllData() {
+      if (!confirm('ATENÇÃO: Deseja excluir TODOS os dados (cursos e responsáveis)? Esta ação não pode ser desfeita.')) return;
+      if (!confirm('Tem certeza absoluta? Esta ação é IRREVERSÍVEL.')) return;
+      courses = [];
+      filteredCourses = [];
+      lotResponsibles = {};
+      saveToStorage(); // Save after deletion
+      updateFilters();
+      renderAll();
+      alert('Todos os dados foram excluídos.');
+    }
+
+    function openAddCourseModal() {
+      if (!isLoggedIn) {
+        openLoginModal();
+        return;
+      }
+      document.getElementById('add-course-modal').classList.remove('hidden');
+    }
+
+    function closeAddCourseModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('add-course-modal').classList.add('hidden');
+      document.getElementById('course-id').value = ''; // Clear ID field
+      document.getElementById('course-tipologia').value = '';
+      document.getElementById('course-carga').value = '';
+      document.getElementById('course-lote').value = '';
+      document.getElementById('course-inicio').value = '';
+      document.getElementById('course-fim').value = '';
+      document.getElementById('course-municipio').value = '';
+      document.getElementById('course-cozinha').value = '';
+      document.getElementById('course-status').value = 'Pendente';
+      document.getElementById('course-concludentes').value = '';
+    }
+
+    function saveCourse() {
+      if (!isLoggedIn) {
+        openLoginModal();
+        return;
+      }
+      const idCurso = document.getElementById('course-id').value.trim(); // Get ID
+      const tipologia = document.getElementById('course-tipologia').value.trim();
+      const cargaHoraria = parseInt(document.getElementById('course-carga').value);
+      const lote = parseInt(document.getElementById('course-lote').value);
+      const municipio = document.getElementById('course-municipio').value.trim();
+      const dataInicio = document.getElementById('course-inicio').value || null;
+      const dataFim = document.getElementById('course-fim').value || null;
+      const status = document.getElementById('course-status').value;
+      const concludentes = document.getElementById('course-concludentes').value ? parseInt(document.getElementById('course-concludentes').value) : null;
+      const cozinha = document.getElementById('course-cozinha').value.trim() || null;
+
+      if (!tipologia || !cargaHoraria || !lote || !municipio) {
+        alert('Preencha todos os campos obrigatórios (*)');
+        return;
+      }
+
+      const newCourse = {
+        id: `course-${Date.now()}`,
+        idCurso: idCurso || null, // Include course ID
+        tipologia,
+        cargaHoraria,
+        lote,
+        municipio,
+        cozinha,
+        dataInicio,
+        dataFim,
+        status,
+        concludentes
+      };
+
+      courses.push(newCourse);
+      filteredCourses = [...courses];
+      saveToStorage(); // Save after adding
+      updateFilters();
+      applyFilters();
+      closeAddCourseModal();
+      alert('Curso adicionado com sucesso!');
+    }
+
+    // Import Modal Functions
+    function openImportModal() {
+      if (!isLoggedIn) {
+        openLoginModal();
+        return;
+      }
+      document.getElementById('import-modal').classList.remove('hidden');
+      resetImportModal();
+    }
+
+    function closeImportModal() {
+      document.getElementById('import-modal').classList.add('hidden');
+      resetImportModal();
+    }
+
+    function resetImportModal() {
+      document.getElementById('import-step-1').classList.remove('hidden');
+      document.getElementById('import-step-2').classList.add('hidden');
+      document.getElementById('import-step-3').classList.add('hidden');
+      document.getElementById('file-input').value = '';
+      uploadedData = [];
+      fileColumns = [];
+      columnMapping = {};
+    }
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+        if (jsonData.length < 2) {
+          alert('A planilha precisa ter pelo menos um cabeçalho e uma linha de dados.');
+          return;
+        }
+
+        fileColumns = jsonData[0].map(col => String(col || '').trim()).filter(col => col);
+        uploadedData = jsonData.slice(1).filter(row => row.some(cell => cell !== null && cell !== '' && cell !== undefined));
+
+        // Enhanced auto-detect column mapping - Map all possible fields intelligently
+        const fieldNames = Object.keys(fieldLabels);
+        const mappingPatterns = {
+          idCurso: ['id', 'código', 'codigo', 'identificador', 'num', 'número', 'numero'],
+          tipologia: ['tipologia', 'tipo', 'curso', 'nome', 'nome do curso', 'curso/tipologia', 'descrição', 'descricao'],
+          cargaHoraria: ['carga', 'horária', 'horaria', 'carga horária', 'carga horaria', 'horas', 'h', 'ch', 'carga hor'],
+          dataInicio: ['início', 'inicio', 'data início', 'data inicio', 'dt início', 'dt inicio', 'início previsto', 'inicio previsto', 'start', 'começo', 'comeco'],
+          dataFim: ['fim', 'término', 'termino', 'data fim', 'data término', 'dt fim', 'dt termino', 'conclusão', 'conclusao', 'end', 'final'],
+          municipio: ['município', 'municipio', 'cidade', 'local', 'localização', 'localizacao', 'município sede', 'municipio sede'],
+          lote: ['lote', 'grupo', 'batch', 'lote número', 'lote numero', 'lote nº'],
+          status: ['status', 'situação', 'situacao', 'estado', 'andamento', 'status do curso'],
+          concludentes: ['concludentes', 'concluintes', 'alunos', 'matriculados', 'quantidade', 'qtd', 'total'],
+          cozinha: ['cozinha', 'coz', 'kitchen', 'nome cozinha', 'cozinha do curso']
+        };
+
+        // Enhanced mapping with multiple patterns
+        fieldNames.forEach(field => {
+          const patterns = mappingPatterns[field] || [];
+          const labelLower = fieldLabels[field].toLowerCase();
+          
+          const matchingCol = fileColumns.find(col => {
+            const colLower = col.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            
+            // Check exact match or field name
+            if (colLower === field.toLowerCase() || colLower === labelLower) return true;
+            
+            // Check if column contains any of the patterns
+            if (patterns.some(pattern => colLower.includes(pattern))) return true;
+            
+            // Check if label contains column name
+            if (labelLower.includes(colLower) || colLower.includes(labelLower)) return true;
+            
+            // Special cases
+            if (field === 'idCurso' && (colLower.match(/^(id|cód|cod|num)/) || colLower.includes('identificador'))) return true;
+            if (field === 'cargaHoraria' && (colLower.includes('hor') || colLower.includes('carga'))) return true;
+            if (field === 'municipio' && (colLower.includes('munic') || colLower.includes('cidade'))) return true;
+            
+            return false;
+          });
+          
+          if (matchingCol) {
+            columnMapping[field] = matchingCol;
+          }
+        });
+
+        // Store additional columns that weren't mapped to standard fields
+        const mappedColumns = Object.values(columnMapping).filter(v => v);
+        columnMapping._additionalColumns = fileColumns.filter(col => !mappedColumns.includes(col));
+
+        renderMappingStep();
+        document.getElementById('import-step-1').classList.add('hidden');
+        document.getElementById('import-step-2').classList.remove('hidden');
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function renderMappingStep() {
+      const fields = Object.keys(fieldLabels);
+      const additionalCols = columnMapping._additionalColumns || [];
+      
+      let html = fields.map(field => `
+        <div class="flex items-center gap-4">
+          <label class="w-32 text-sm font-medium text-foreground">${fieldLabels[field]} ${field === 'lote' ? '*' : ''}</label>
+          <select id="map-${field}" class="flex-1 px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            <option value="">-- Não mapear --</option>
+            ${fileColumns.map(col => `<option value="${col}" ${columnMapping[field] === col ? 'selected' : ''}>${col}</option>`).join('')}
+          </select>
+        </div>
+      `).join('');
+      
+      // Add additional columns mapping section
+      if (additionalCols.length > 0) {
+        html += `
+          <div class="mt-6 pt-4 border-t border-border">
+            <h4 class="text-sm font-medium text-foreground mb-3">Colunas Adicionais Encontradas</h4>
+            <p class="text-xs text-muted-foreground mb-4">Estas colunas foram encontradas na planilha e podem ser adicionadas como informações extras:</p>
+            <div id="additional-mapping" class="space-y-3">
+              ${additionalCols.map((col, idx) => `
+                <div class="flex items-center gap-4">
+                  <label class="w-32 text-sm text-muted-foreground truncate" title="${col}">${col.length > 20 ? col.substring(0, 20) + '...' : col}</label>
+                  <div class="flex-1 flex items-center gap-2">
+                    <input type="checkbox" id="add-col-${idx}" checked class="w-4 h-4 text-primary bg-input border-border rounded focus:ring-primary">
+                    <label for="add-col-${idx}" class="text-sm text-muted-foreground">Incluir como informação adicional</label>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+      
+      document.getElementById('mapping-fields').innerHTML = html;
+    }
+
+    function backToStep1() {
+      document.getElementById('import-step-1').classList.remove('hidden');
+      document.getElementById('import-step-2').classList.add('hidden');
+    }
+
+    function backToStep2() {
+      document.getElementById('import-step-2').classList.remove('hidden');
+      document.getElementById('import-step-3').classList.add('hidden');
+    }
+
+    function goToStep3() {
+      // Collect mapping
+      const fields = Object.keys(fieldLabels);
+      fields.forEach(field => {
+        const select = document.getElementById(`map-${field}`);
+        columnMapping[field] = select.value;
+      });
+
+      renderPreview();
+      document.getElementById('import-step-2').classList.add('hidden');
+      document.getElementById('import-step-3').classList.remove('hidden');
+    }
+
+    function renderPreview() {
+      const previewData = uploadedData.slice(0, 5);
+      const fields = Object.keys(fieldLabels);
+
+      let tableHtml = `
+        <thead class="bg-secondary/50">
+          <tr>
+            ${fields.map(f => `<th class="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">${fieldLabels[f]}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border">
+      `;
+
+      previewData.forEach(row => {
+        tableHtml += '<tr>';
+        fields.forEach(field => {
+          const colName = columnMapping[field];
+          const colIndex = colName ? fileColumns.indexOf(colName) : -1;
+          const value = colIndex >= 0 ? (row[colIndex] ?? '-') : '-';
+          tableHtml += `<td class="px-3 py-2 text-foreground text-sm whitespace-nowrap">${value}</td>`;
+        });
+        tableHtml += '</tr>';
+      });
+
+      tableHtml += '</tbody>';
+      document.getElementById('preview-table').innerHTML = tableHtml;
+    }
+
+    function confirmImport() {
+      if (!isLoggedIn) {
+        openLoginModal();
+        closeImportModal();
+        return;
+      }
+        const fields = Object.keys(fieldLabels);
+        
+        const loteColumn = columnMapping['lote'];
+        if (!loteColumn) {
+          alert('Por favor, mapeie a coluna "Lote" para que os cursos sejam separados corretamente.');
+          backToStep2();
+          return;
+        }
+        
+        // Get additional columns to include
+        const additionalCols = columnMapping._additionalColumns || [];
+        const additionalColsToInclude = [];
+        additionalCols.forEach((col, idx) => {
+          const checkbox = document.getElementById(`add-col-${idx}`);
+          if (checkbox && checkbox.checked) {
+            additionalColsToInclude.push(col);
+          }
+        });
+        
+        const newCourses = uploadedData.map((row, index) => {
+          const course = { id: `imported-${Date.now()}-${index}`, additionalInfo: {} };
+          
+          fields.forEach(field => {
+            const colName = columnMapping[field];
+            const colIndex = colName ? fileColumns.indexOf(colName) : -1;
+            let value = colIndex >= 0 ? row[colIndex] : null;
+
+          if (field === 'idCurso') {
+            value = value !== null && value !== '' && value !== undefined ? String(value).trim() : null;
+          } else if (field === 'cargaHoraria' || field === 'concludentes') {
+            value = value !== null && value !== '' && value !== undefined ? Number(value) : (field === 'concludentes' ? null : 0);
+          } else if (field === 'lote') {
+            const parsed = parseInt(value, 10);
+            value = !isNaN(parsed) && parsed > 0 ? parsed : null;
+          } else if (field === 'status') {
+            if (value) {
+              const normalized = String(value).trim().toLowerCase();
+              // Normalize to standard values
+              if (normalized === 'concluído' || normalized === 'concluido') {
+                value = 'Concluído';
+              } else if (normalized === 'pendente') {
+                value = 'Pendente';
+              } else if (normalized === 'em andamento' || normalized === 'em andamento.' || normalized === 'andamento') {
+                value = 'Em andamento';
+              } else {
+                value = String(value).trim();
+              }
+            } else {
+              value = 'Pendente';
+            }
+          } else if (field === 'cozinha') {
+            value = value !== null && value !== '' && value !== undefined ? String(value).trim() : null;
+          } else if (field === 'dataInicio' || field === 'dataFim') {
+            if (value && typeof value === 'number') {
+              // Excel date serial number
+              const date = new Date((value - 25569) * 86400 * 1000);
+              value = date.toISOString().split('T')[0];
+            } else if (value && typeof value === 'string') {
+              // Try to parse date string
+              const parsed = new Date(value);
+              value = !isNaN(parsed.getTime()) ? parsed.toISOString().split('T')[0] : null;
+            } else {
+              value = null;
+            }
+          } else {
+            value = value !== null && value !== undefined ? String(value).trim() : '';
+          }
+
+            course[field] = value;
+          });
+          
+          // Add additional columns as extra info
+          additionalColsToInclude.forEach(col => {
+            const colIndex = fileColumns.indexOf(col);
+            if (colIndex >= 0 && row[colIndex] !== null && row[colIndex] !== undefined && row[colIndex] !== '') {
+              course.additionalInfo[col] = String(row[colIndex]).trim();
+            }
+          });
+
+          return course;
+        });
+
+      const validCourses = newCourses.filter(c => c.lote !== null && c.lote > 0);
+      const invalidCount = newCourses.length - validCourses.length;
+      
+      if (validCourses.length === 0) {
+        alert('Nenhum curso possui um número de lote válido. Verifique se a coluna "Lote" está mapeada corretamente e contém números válidos.');
+        return;
+      }
+
+      courses = [...courses, ...validCourses];
+      filteredCourses = [...courses];
+      saveToStorage();
+      updateFilters();
+      renderAll();
+      closeImportModal();
+      
+      let message = `${validCourses.length} cursos importados com sucesso!`;
+      if (invalidCount > 0) {
+        message += `\n\n${invalidCount} curso(s) foram ignorados por não terem um lote válido.`;
+      }
+      alert(message);
+    }
+
+    // Responsibles Modal Functions
+    function openResponsiblesModal(lotNumber) {
+      if (!isLoggedIn) {
+        openLoginModal();
+        return;
+      }
+      currentEditLot = lotNumber;
+      document.getElementById('modal-lot-name').textContent = `Lote ${lotNumber}`;
+      document.getElementById('responsibles-modal').classList.remove('hidden');
+      renderLotCourseInfo(lotNumber);
+      renderResponsiblesList();
+      updateUIForLoginStatus(); // Update modal UI
+    }
+    
+    function renderLotCourseInfo(lotNumber) {
+      const lotCourses = courses.filter(c => c.lote === lotNumber);
+      const infoContent = document.getElementById('lot-course-info-content');
+      
+      if (lotCourses.length === 0) {
+        infoContent.innerHTML = '<p class="text-xs text-muted-foreground">Nenhum curso encontrado neste lote.</p>';
+        return;
+      }
+      
+      // Get all unique additional info keys from all courses in the lot
+      const allAdditionalInfo = {};
+      lotCourses.forEach(course => {
+        if (course.additionalInfo && Object.keys(course.additionalInfo).length > 0) {
+          Object.assign(allAdditionalInfo, course.additionalInfo);
+        }
+      });
+      
+      let html = '';
+      
+      // Show basic course info
+      html += `<div class="grid grid-cols-2 gap-2 mb-3">`;
+      html += `<div><span class="font-medium">Total de Cursos:</span> ${lotCourses.length}</div>`;
+      html += `<div><span class="font-medium">Tipologias:</span> ${[...new Set(lotCourses.map(c => c.tipologia))].length}</div>`;
+      html += `</div>`;
+      
+      // Show additional info if available
+      if (Object.keys(allAdditionalInfo).length > 0) {
+        html += `<div class="mt-3 pt-3 border-t border-border">`;
+        html += `<p class="text-xs font-medium text-foreground mb-2">Informações Adicionais:</p>`;
+        html += `<div class="space-y-1">`;
+        Object.keys(allAdditionalInfo).forEach(key => {
+          const values = lotCourses
+            .map(c => c.additionalInfo && c.additionalInfo[key])
+            .filter(v => v)
+            .filter((v, i, arr) => arr.indexOf(v) === i); // Unique values
+          
+          if (values.length > 0) {
+            html += `<div><span class="text-xs font-medium">${key}:</span> <span class="text-xs">${values.join(', ')}</span></div>`;
+          }
+        });
+        html += `</div></div>`;
+      }
+      
+      infoContent.innerHTML = html || '<p class="text-xs text-muted-foreground">Nenhuma informação adicional disponível.</p>';
+    }
+
+    function closeResponsiblesModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('responsibles-modal').classList.add('hidden');
+      document.getElementById('resp-name').value = '';
+      document.getElementById('resp-cargo').value = '';
+      document.getElementById('resp-phone').value = '';
+      currentEditLot = null;
+    }
+
+    function renderResponsiblesList() {
+      const responsibles = lotResponsibles[currentEditLot] || [];
+      
+      if (responsibles.length === 0) {
+        document.getElementById('responsibles-list').innerHTML = `
+          <p class="text-center text-muted-foreground py-4">Nenhum responsável cadastrado.</p>
+        `;
+        return;
+      }
+
+      document.getElementById('responsibles-list').innerHTML = responsibles.map(r => `
+        <div class="bg-secondary/30 border border-border rounded-lg p-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                <span class="text-primary font-medium">${r.name.charAt(0)}</span>
+              </div>
+              <div>
+                <p class="font-medium text-foreground">${r.name}</p>
+                <p class="text-sm text-muted-foreground">${r.cargo}</p>
+                <p class="text-xs text-muted-foreground">${r.phone}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="https://wa.me/${r.phone.replace(/\D/g, '')}" target="_blank" 
+                class="w-10 h-10 bg-green-600 hover:bg-green-700 rounded-lg flex items-center justify-center transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+              </a>
+              ${isLoggedIn ? `
+              <button onclick="removeResponsible('${r.id}')" class="w-10 h-10 bg-red-600/20 hover:bg-red-600/40 rounded-lg flex items-center justify-center transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addResponsible() {
+      if (!isLoggedIn) {
+        openLoginModal();
+        return;
+      }
+      const name = document.getElementById('resp-name').value.trim();
+      const cargo = document.getElementById('resp-cargo').value.trim();
+      const phone = document.getElementById('resp-phone').value.trim();
+
+      if (!name || !cargo || !phone) {
+        alert('Preencha todos os campos.');
+        return;
+      }
+
+      if (!lotResponsibles[currentEditLot]) {
+        lotResponsibles[currentEditLot] = [];
+      }
+
+      lotResponsibles[currentEditLot].push({
+        id: `resp-${Date.now()}`,
+        name,
+        cargo,
+        phone
+      });
+
+      document.getElementById('resp-name').value = '';
+      document.getElementById('resp-cargo').value = '';
+      document.getElementById('resp-phone').value = '';
+
+      saveToStorage(); // Save after adding responsible
+      renderResponsiblesList();
+      renderLotSections();
+    }
+
+    function removeResponsible(id) {
+      if (!isLoggedIn) {
+        openLoginModal();
+        return;
+      }
+      if (!confirm('Deseja remover este responsável?')) return;
+      
+      lotResponsibles[currentEditLot] = lotResponsibles[currentEditLot].filter(r => r.id !== id);
+      saveToStorage(); // Save after removing responsible
+      renderResponsiblesList();
+      renderLotSections();
+    }
+  </script>
+</body>
+</html>
