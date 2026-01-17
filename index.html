@@ -636,7 +636,10 @@
     };
 
     async function saveToFirestore() {
-      if (isUpdatingFromListener) return; // Prevent infinite loop
+      if (isUpdatingFromListener) {
+        console.log('Ignorando salvamento - atualização vinda do listener');
+        return; // Prevent infinite loop
+      }
       
       if (!window.firestore || !window.firebaseModules) {
         console.warn('Firestore não disponível, usando localStorage como fallback');
@@ -649,28 +652,44 @@
         const db = window.firestore;
         const { doc, setDoc } = window.firebaseModules;
         
+        console.log('Salvando no Firestore...', { courses: courses.length, responsibles: Object.keys(lotResponsibles).length });
+        
         // Save courses
         await setDoc(doc(db, 'dashboard', 'courses'), { 
           data: courses,
           updatedAt: new Date().toISOString()
         }, { merge: false });
+        console.log('Cursos salvos no Firestore com sucesso');
         
         // Save responsibles
         await setDoc(doc(db, 'dashboard', 'responsibles'), { 
           data: lotResponsibles,
           updatedAt: new Date().toISOString()
         }, { merge: false });
+        console.log('Responsáveis salvos no Firestore com sucesso');
       } catch (error) {
         console.error('Erro ao salvar no Firestore:', error);
+        console.error('Detalhes do erro:', {
+          code: error.code,
+          message: error.message,
+          firestoreAvailable: !!window.firestore,
+          modulesAvailable: !!window.firebaseModules
+        });
+        
+        // Show user-friendly error
+        if (error.code === 'permission-denied') {
+          alert('Erro de permissão no Firestore. Verifique as regras de segurança do Firestore no Firebase Console.');
+        }
+        
         // Fallback to localStorage
         localStorage.setItem(STORAGE_KEY_COURSES, JSON.stringify(courses));
         localStorage.setItem(STORAGE_KEY_RESPONSIBLES, JSON.stringify(lotResponsibles));
       }
     }
 
-    // Alias for compatibility
-    function saveToStorage() {
-      saveToFirestore();
+    // Alias for compatibility - make sure to await this when needed
+    async function saveToStorage() {
+      await saveToFirestore();
     }
 
     async function loadFromFirestore() {
@@ -741,47 +760,69 @@
       const db = window.firestore;
       const { doc, onSnapshot } = window.firebaseModules;
       
+      console.log('Configurando listeners em tempo real do Firestore...');
+      
       // Unsubscribe from previous listeners if any
       if (unsubscribeCourses) unsubscribeCourses();
       if (unsubscribeResponsibles) unsubscribeResponsibles();
       
       // Listen to courses changes
-      unsubscribeCourses = onSnapshot(doc(db, 'dashboard', 'courses'), (snapshot) => {
-        if (snapshot.exists() && !isUpdatingFromListener) {
-          const newCourses = snapshot.data().data || [];
-          const currentStr = JSON.stringify(courses.sort((a, b) => (a.id || '').localeCompare(b.id || '')));
-          const newStr = JSON.stringify(newCourses.sort((a, b) => (a.id || '').localeCompare(b.id || '')));
-          
-          if (currentStr !== newStr) {
-            isUpdatingFromListener = true;
-            courses = newCourses;
-            filteredCourses = [...courses];
-            updateFilters();
-            applyFilters();
-            setTimeout(() => { isUpdatingFromListener = false; }, 100);
+      unsubscribeCourses = onSnapshot(
+        doc(db, 'dashboard', 'courses'),
+        (snapshot) => {
+          console.log('Listener de courses acionado', { exists: snapshot.exists() });
+          if (snapshot.exists() && !isUpdatingFromListener) {
+            const newCourses = snapshot.data().data || [];
+            const currentStr = JSON.stringify(courses.sort((a, b) => (a.id || '').localeCompare(b.id || '')));
+            const newStr = JSON.stringify(newCourses.sort((a, b) => (a.id || '').localeCompare(b.id || '')));
+            
+            if (currentStr !== newStr) {
+              console.log('Atualizando cursos via listener', { oldCount: courses.length, newCount: newCourses.length });
+              isUpdatingFromListener = true;
+              courses = newCourses;
+              filteredCourses = [...courses];
+              updateFilters();
+              applyFilters();
+              setTimeout(() => { isUpdatingFromListener = false; }, 100);
+            }
+          }
+        },
+        (error) => {
+          console.error('Erro no listener de courses:', error);
+          if (error.code === 'permission-denied') {
+            console.error('Permissão negada no Firestore. Verifique as regras de segurança.');
           }
         }
-      }, (error) => {
-        console.error('Erro no listener de courses:', error);
-      });
+      );
       
       // Listen to responsibles changes
-      unsubscribeResponsibles = onSnapshot(doc(db, 'dashboard', 'responsibles'), (snapshot) => {
-        if (snapshot.exists() && !isUpdatingFromListener) {
-          const newResponsibles = snapshot.data().data || {};
-          const currentStr = JSON.stringify(lotResponsibles);
-          const newStr = JSON.stringify(newResponsibles);
-          
-          if (currentStr !== newStr) {
-            isUpdatingFromListener = true;
-            lotResponsibles = newResponsibles;
-            renderAll();
-            setTimeout(() => { isUpdatingFromListener = false; }, 100);
+      unsubscribeResponsibles = onSnapshot(
+        doc(db, 'dashboard', 'responsibles'),
+        (snapshot) => {
+          console.log('Listener de responsibles acionado', { exists: snapshot.exists() });
+          if (snapshot.exists() && !isUpdatingFromListener) {
+            const newResponsibles = snapshot.data().data || {};
+            const currentStr = JSON.stringify(lotResponsibles);
+            const newStr = JSON.stringify(newResponsibles);
+            
+            if (currentStr !== newStr) {
+              console.log('Atualizando responsáveis via listener');
+              isUpdatingFromListener = true;
+              lotResponsibles = newResponsibles;
+              renderAll();
+              setTimeout(() => { isUpdatingFromListener = false; }, 100);
+            }
+          }
+        },
+        (error) => {
+          console.error('Erro no listener de responsibles:', error);
+          if (error.code === 'permission-denied') {
+            console.error('Permissão negada no Firestore. Verifique as regras de segurança.');
           }
         }
-      }, (error) => {
-        console.error('Erro no listener de responsibles:', error);
-      });
+      );
+      
+      console.log('Listeners em tempo real configurados com sucesso');
     }
 
     // Firebase Authentication
@@ -957,6 +998,26 @@
         
         // Load data from Firestore (or localStorage as fallback)
         await loadFromFirestore();
+        
+        // Verify Firestore connection
+        if (window.firestore && window.firebaseModules) {
+          console.log('✅ Firestore conectado e pronto');
+          const { doc, getDoc } = window.firebaseModules;
+          const db = window.firestore;
+          
+          // Test read access
+          try {
+            const testDoc = await getDoc(doc(db, 'dashboard', 'courses'));
+            console.log('✅ Acesso de leitura ao Firestore OK', { exists: testDoc.exists() });
+          } catch (error) {
+            console.error('❌ Erro ao acessar Firestore:', error);
+            if (error.code === 'permission-denied') {
+              alert('⚠️ Erro: Permissão negada no Firestore. Verifique as regras de segurança no Firebase Console.');
+            }
+          }
+        } else {
+          console.warn('⚠️ Firestore não disponível - usando localStorage (sem sincronização)');
+        }
         
         // Set up real-time listeners for synchronization
         setupRealtimeListeners();
