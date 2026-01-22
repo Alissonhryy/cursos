@@ -2,8 +2,16 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - Gestão de Cursos Profissionalizantes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="IAC - Instituto de Arte e Cidadania do Ceará - Gestão de Cursos Profissionalizantes">
+  <meta name="theme-color" content="#007AFF">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="IAC">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <title>IAC - Instituto de Arte e Cidadania do Ceará</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -54,110 +62,270 @@
       theme: {
         extend: {
           colors: {
-            background: '#0a0f1a',
-            foreground: '#f8fafc',
-            card: '#111827',
-            'card-foreground': '#f8fafc',
-            primary: '#3b82f6',
+            background: '#f5f5f7',
+            foreground: '#1d1d1f',
+            card: 'rgba(255, 255, 255, 0.8)',
+            'card-foreground': '#1d1d1f',
+            primary: '#007AFF',
             'primary-foreground': '#ffffff',
-            secondary: '#1e293b',
-            'secondary-foreground': '#f8fafc',
-            muted: '#1e293b',
-            'muted-foreground': '#94a3b8',
-            border: '#1e3a5f',
-            input: '#1e293b',
-            ring: '#3b82f6',
+            secondary: 'rgba(142, 142, 147, 0.12)',
+            'secondary-foreground': '#1d1d1f',
+            muted: 'rgba(142, 142, 147, 0.12)',
+            'muted-foreground': '#8e8e93',
+            border: 'rgba(0, 0, 0, 0.1)',
+            input: 'rgba(255, 255, 255, 0.9)',
+            ring: '#007AFF',
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"SF Pro Text"', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+          },
+          borderRadius: {
+            'ios': '20px',
+            'ios-sm': '12px',
+            'ios-lg': '28px',
+          },
+          boxShadow: {
+            'ios': '0 2px 10px rgba(0, 0, 0, 0.1), 0 0 1px rgba(0, 0, 0, 0.1)',
+            'ios-lg': '0 10px 40px rgba(0, 0, 0, 0.15), 0 0 1px rgba(0, 0, 0, 0.1)',
+            'ios-card': '0 4px 16px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.08)',
           }
         }
       }
     }
   </script>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    * {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
     body { 
-      background: linear-gradient(135deg, #0a0f1a 0%, #111827 100%);
-      color: #f8fafc; 
+      background: linear-gradient(180deg, #f5f5f7 0%, #ffffff 50%, #f5f5f7 100%);
+      background-attachment: fixed;
+      color: #1d1d1f; 
       min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
+    
+    /* Dark Mode Styles */
+    body.dark {
+      background: linear-gradient(180deg, #000000 0%, #1c1c1e 50%, #000000 100%);
+      color: #f5f5f7;
+    }
+    
+    body.dark .card-elegant {
+      background: rgba(28, 28, 30, 0.7);
+      border: 0.5px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+    
+    body.dark .header-fixed {
+      background: rgba(28, 28, 30, 0.72);
+      border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    body.dark input,
+    body.dark select,
+    body.dark textarea {
+      background: rgba(28, 28, 30, 0.9);
+      border: 0.5px solid rgba(255, 255, 255, 0.1);
+      color: #f5f5f7;
+    }
+    
+    body.dark input:focus,
+    body.dark select:focus,
+    body.dark textarea:focus {
+      background: rgba(28, 28, 30, 1);
+      border-color: #007AFF;
+    }
+    
+    body.dark .modal-content {
+      background: rgba(28, 28, 30, 0.95);
+      border: 0.5px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    body.dark select option {
+      background: #1c1c1e;
+      color: #f5f5f7;
+    }
+    
+    body.dark ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    body.dark ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    body.dark table tbody tr:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    body.dark table tbody tr {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    /* Dark mode text colors */
+    body.dark .text-foreground {
+      color: #f5f5f7;
+    }
+    
+    body.dark .text-muted-foreground {
+      color: #8e8e93;
+    }
+    
+    body.dark .bg-card {
+      background: rgba(28, 28, 30, 0.7);
+    }
+    
+    body.dark .border-border {
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    body.dark .bg-secondary {
+      background: rgba(142, 142, 147, 0.12);
+    }
+    
     .modal-overlay { 
-      background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(8px);
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
     }
-    /* Elegant Scrollbar */
-    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    
+    /* iOS-style Scrollbar */
+    ::-webkit-scrollbar { 
+      width: 8px; 
+      height: 8px; 
+    }
     ::-webkit-scrollbar-track { 
-      background: rgba(30, 41, 59, 0.3);
-      border-radius: 10px;
+      background: transparent;
     }
     ::-webkit-scrollbar-thumb { 
-      background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
-      border-radius: 10px;
-      border: 2px solid rgba(30, 41, 59, 0.3);
-      box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
     }
     ::-webkit-scrollbar-thumb:hover { 
-      background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
-      box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+      background: rgba(0, 0, 0, 0.3);
+      background-clip: padding-box;
     }
-    .scrollbar-thin::-webkit-scrollbar { width: 8px; height: 8px; }
-    .scrollbar-thin::-webkit-scrollbar-track { 
-      background: rgba(30, 41, 59, 0.2);
-      border-radius: 10px;
+    
+    .scrollbar-thin::-webkit-scrollbar { 
+      width: 6px; 
+      height: 6px; 
     }
     .scrollbar-thin::-webkit-scrollbar-thumb { 
-      background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
-      border-radius: 10px;
-      border: 1px solid rgba(30, 41, 59, 0.3);
-      box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 3px;
     }
-    select option { background: #111827; color: #f8fafc; }
-    .tab-btn { transition: all 0.3s ease; }
+    
+    select option { 
+      background: #ffffff; 
+      color: #1d1d1f; 
+    }
+    
+    .tab-btn { 
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 500;
+    }
     .tab-btn.active { 
-      border-color: #3b82f6; 
-      color: #3b82f6;
-      box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+      color: #007AFF;
+      position: relative;
     }
-    /* Glow effects */
-    .glow-border {
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      box-shadow: 0 0 15px rgba(59, 130, 246, 0.1), inset 0 0 15px rgba(59, 130, 246, 0.05);
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #007AFF;
+      border-radius: 2px;
     }
-    .glow-border:hover {
-      border-color: rgba(59, 130, 246, 0.5);
-      box-shadow: 0 0 25px rgba(59, 130, 246, 0.2), inset 0 0 20px rgba(59, 130, 246, 0.1);
-    }
-    /* Card styling */
+    
+    /* iOS Card styling - Glassmorphism */
     .card-elegant {
-      background: rgba(17, 24, 39, 0.6);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(59, 130, 246, 0.2);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(59, 130, 246, 0.1);
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border: 0.5px solid rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    /* Header fixo */
+    
+    .card-elegant:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* iOS Header */
     .header-fixed {
       position: sticky;
       top: 0;
       z-index: 1000;
-      background: rgba(17, 24, 39, 0.85);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(59, 130, 246, 0.2);
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-      transition: all 0.3s ease;
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    /* Header quando modal está aberto */
+    
     body.modal-open .header-fixed {
-      background: rgba(10, 15, 26, 0.95);
-      backdrop-filter: blur(10px);
-      opacity: 0.7;
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: saturate(180%) blur(10px);
+      -webkit-backdrop-filter: saturate(180%) blur(10px);
     }
+    /* iOS Button Styles */
+    button {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    
+    button:active {
+      transform: scale(0.97);
+      opacity: 0.8;
+    }
+    
+    /* iOS Input Styles */
+    input, select, textarea {
+      background: rgba(255, 255, 255, 0.9);
+      border: 0.5px solid rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 400;
+    }
+    
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #007AFF;
+      box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+      background: rgba(255, 255, 255, 1);
+    }
+    
+    /* iOS Modal Content */
+    .modal-content {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: saturate(180%) blur(30px);
+      -webkit-backdrop-filter: saturate(180%) blur(30px);
+      border: 0.5px solid rgba(0, 0, 0, 0.1);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 1px rgba(0, 0, 0, 0.1);
+    }
+    
     /* Mobile optimizations */
     @media (max-width: 768px) {
-      /* Desabilitar scrollbar customizada no mobile */
       ::-webkit-scrollbar, .scrollbar-thin::-webkit-scrollbar {
         width: 0px;
         height: 0px;
         display: none;
       }
-      /* Inputs com font-size mínimo para evitar zoom no iOS */
+      
       input[type="text"],
       input[type="email"],
       input[type="tel"],
@@ -168,13 +336,13 @@
       textarea {
         font-size: 16px !important;
         min-height: 44px;
+        padding: 12px 16px !important;
       }
-      /* Feedback tátil melhorado */
+      
       button:active, .tab-btn:active, a:active {
-        transform: scale(0.95);
-        opacity: 0.8;
+        transform: scale(0.96);
       }
-      /* Modais em tela cheia no mobile */
+      
       .modal-content {
         position: absolute !important;
         width: 100vw !important;
@@ -187,91 +355,96 @@
         border-radius: 0 !important;
         margin: 0 !important;
       }
-      /* Padding reduzido no mobile */
+      
       .container-mobile {
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
       }
     }
+    
     @media (min-width: 768px) {
       .modal-content {
         position: absolute !important;
         width: auto !important;
         height: auto !important;
-        max-height: 90vh !important;
+        max-height: 85vh !important;
         top: 50% !important;
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
-        border-radius: 1rem !important;
+        border-radius: 28px !important;
         margin: 0 !important;
       }
     }
-    /* Base para modais - garantir position absolute */
-    .modal-content {
-      position: absolute;
-    }
-    /* FAB (Floating Action Button) */
+    /* iOS FAB (Floating Action Button) */
     .fab {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
+      bottom: 24px;
+      right: 24px;
       z-index: 999;
       width: 56px;
       height: 56px;
-      border-radius: 50%;
+      border-radius: 28px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-      transition: all 0.3s ease;
+      background: #007AFF;
+      box-shadow: 0 4px 16px rgba(0, 122, 255, 0.4), 0 0 1px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .fab:active {
-      transform: scale(0.9);
+      transform: scale(0.92);
     }
     .fab-menu {
       position: fixed;
-      bottom: 90px;
-      right: 20px;
+      bottom: 92px;
+      right: 24px;
       z-index: 998;
       display: flex;
       flex-direction: column;
       gap: 12px;
       opacity: 0;
       visibility: hidden;
-      transform: translateY(10px);
-      transition: all 0.3s ease;
+      transform: translateY(10px) scale(0.9);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .fab-menu.open {
       opacity: 1;
       visibility: visible;
-      transform: translateY(0);
+      transform: translateY(0) scale(1);
     }
     .fab-item {
       width: 48px;
       height: 48px;
-      border-radius: 50%;
+      border-radius: 24px;
       display: flex;
       align-items: center;
       justify-center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      transition: all 0.3s ease;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border: 0.5px solid rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 1px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .fab-item:active {
-      transform: scale(0.9);
+      transform: scale(0.92);
     }
-    /* Menu hamburguer */
+    
+    /* iOS Menu Drawer */
     .menu-drawer {
       position: fixed;
       top: 0;
       left: -100%;
-      width: 280px;
+      width: 300px;
       height: 100vh;
       z-index: 1100;
-      background: rgba(17, 24, 39, 0.98);
-      backdrop-filter: blur(20px);
-      border-right: 1px solid rgba(59, 130, 246, 0.2);
-      transition: left 0.3s ease;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: saturate(180%) blur(30px);
+      -webkit-backdrop-filter: saturate(180%) blur(30px);
+      border-right: 0.5px solid rgba(0, 0, 0, 0.1);
+      transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       overflow-y: auto;
+      box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
     }
     .menu-drawer.open {
       left: 0;
@@ -279,98 +452,145 @@
     .menu-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
       z-index: 1099;
       opacity: 0;
       visibility: hidden;
-      transition: all 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .menu-overlay.open {
       opacity: 1;
       visibility: visible;
     }
-    /* Alerta de cursos pendentes */
+    /* iOS Alert Badge */
     .alert-pending {
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.15) 100%);
-      color: #f59e0b;
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      border-radius: 8px;
+      background: rgba(255, 149, 0, 0.15);
+      color: #FF9500;
+      border: 0.5px solid rgba(255, 149, 0, 0.2);
+      border-radius: 12px;
       padding: 6px 12px;
-      font-size: 11px;
-      font-weight: 600;
-      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1);
+      font-size: 12px;
+      font-weight: 500;
+      box-shadow: 0 1px 4px rgba(255, 149, 0, 0.1);
       white-space: nowrap;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      backdrop-filter: blur(4px);
-      transition: all 0.3s ease;
+      backdrop-filter: saturate(180%) blur(10px);
+      -webkit-backdrop-filter: saturate(180%) blur(10px);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .alert-pending:hover {
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.2) 100%);
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+      background: rgba(255, 149, 0, 0.2);
       transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(255, 149, 0, 0.15);
     }
     .alert-pending .pending-count {
-      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      background: #FF9500;
       color: white;
-      border-radius: 12px;
+      border-radius: 10px;
       padding: 2px 8px;
-      font-weight: 700;
-      font-size: 10px;
+      font-weight: 600;
+      font-size: 11px;
       min-width: 20px;
       text-align: center;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* iOS Status Badges */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    
+    /* iOS Table Styles */
+    table {
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+    
+    table thead th {
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      color: #8e8e93;
+    }
+    
+    table tbody tr {
+      transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    table tbody tr:hover {
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+    
+    /* iOS Loading Spinner */
+    @keyframes spin-ios {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .spinner-ios {
+      animation: spin-ios 0.8s linear infinite;
     }
   </style>
 </head>
 <body class="min-h-screen">
   <!-- Loading Screen -->
-  <div id="loading-screen" class="fixed inset-0 z-50 bg-background flex items-center justify-center">
+  <div id="loading-screen" class="fixed inset-0 z-50 bg-white/80 backdrop-blur-xl flex items-center justify-center">
     <div class="text-center">
-      <div class="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-      <p class="text-foreground text-lg font-medium">Carregando...</p>
+      <div class="w-12 h-12 border-3 border-[#007AFF] border-t-transparent rounded-full spinner-ios mx-auto mb-6"></div>
+      <p class="text-[#1d1d1f] dark:text-[#f5f5f7] text-lg font-medium" style="letter-spacing: -0.02em;">Carregando...</p>
     </div>
   </div>
 
   <!-- Login Modal -->
   <div id="login-modal" class="fixed inset-0 z-[1100] hidden">
     <div class="modal-overlay absolute inset-0" onclick="closeLoginModal()"></div>
-    <div class="modal-content w-full max-w-md md:rounded-2xl card-elegant shadow-2xl overflow-hidden">
-      <div class="p-8">
-        <div class="text-center mb-8">
-          <div class="w-20 h-20 bg-gradient-to-br from-primary to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/30">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+    <div class="modal-content w-full max-w-md overflow-hidden">
+      <div class="p-8 md:p-10">
+        <div class="text-center mb-10">
+          <div class="w-20 h-20 bg-[#007AFF] rounded-[24px] flex items-center justify-center mx-auto mb-6 shadow-lg" style="box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <h2 class="text-3xl font-bold text-foreground mb-3 bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">Login Administrativo</h2>
-          <p class="text-sm text-muted-foreground">Faça login para acessar funções administrativas</p>
+          <h2 class="text-3xl font-semibold text-[#1d1d1f] dark:text-[#f5f5f7] mb-3" style="letter-spacing: -0.03em;">Login Administrativo</h2>
+          <p class="text-sm text-[#8e8e93]">Faça login para acessar funções administrativas</p>
         </div>
-        <div class="space-y-4">
+        <div class="space-y-5">
           <div>
-            <label class="block text-sm font-medium text-muted-foreground mb-2">E-mail</label>
+            <label class="block text-sm font-medium text-[#1d1d1f] dark:text-[#f5f5f7] mb-2">E-mail</label>
             <input type="email" id="login-email" placeholder="Digite seu e-mail" 
-              class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              class="w-full px-4 py-3 text-[#1d1d1f] dark:text-[#f5f5f7] placeholder:text-[#8e8e93]"
               onkeypress="if(event.key === 'Enter') handleLogin()">
           </div>
           <div>
-            <label class="block text-sm font-medium text-muted-foreground mb-2">Senha</label>
+            <label class="block text-sm font-medium text-[#1d1d1f] dark:text-[#f5f5f7] mb-2">Senha</label>
             <input type="password" id="login-password" placeholder="Digite sua senha" 
-              class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              class="w-full px-4 py-3 text-[#1d1d1f] dark:text-[#f5f5f7] placeholder:text-[#8e8e93]"
               onkeypress="if(event.key === 'Enter') handleLogin()">
           </div>
           <div class="flex items-center">
-            <input type="checkbox" id="remember-login" class="w-4 h-4 text-primary bg-input border-border rounded focus:ring-primary">
-            <label for="remember-login" class="ml-2 text-sm text-muted-foreground">Manter-me logado</label>
+            <input type="checkbox" id="remember-login" class="w-4 h-4 text-[#007AFF] rounded">
+            <label for="remember-login" class="ml-2 text-sm text-[#8e8e93]">Manter-me logado</label>
           </div>
-          <button onclick="handleLogin()" class="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary text-white px-4 py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transform hover:-translate-y-0.5">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+          <button onclick="handleLogin()" class="w-full bg-[#007AFF] hover:bg-[#0051D5] text-white px-4 py-3.5 rounded-[12px] transition-all duration-200 flex items-center justify-center gap-2 font-medium shadow-lg" style="box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
             </svg>
             Entrar
           </button>
         </div>
-        <div id="login-error" class="mt-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm hidden"></div>
+        <div id="login-error" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-[12px] text-red-600 text-sm hidden"></div>
       </div>
     </div>
   </div>
@@ -389,11 +609,23 @@
           </button>
         </div>
         <div class="space-y-2">
-          <button onclick="switchTab('dashboard'); toggleMenuDrawer();" class="tab-btn active w-full text-left flex items-center gap-3 px-4 py-3 border-l-4 border-transparent hover:bg-secondary/50 rounded-lg transition-colors">
+          <button onclick="switchTab('dashboard'); toggleMenuDrawer();" class="tab-btn w-full text-left flex items-center gap-3 px-4 py-3 border-l-4 border-transparent hover:bg-secondary/50 rounded-lg transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
             </svg>
             Dashboard
+          </button>
+          <button onclick="switchTab('cronograma'); toggleMenuDrawer();" id="tab-cronograma-mobile" class="tab-btn active w-full text-left flex items-center gap-3 px-4 py-3 border-l-4 border-[#007AFF] hover:bg-secondary/50 rounded-lg transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Cronograma
+          </button>
+          <button onclick="switchTab('calendar'); toggleMenuDrawer();" id="tab-calendar-mobile" class="tab-btn admin-only w-full text-left flex items-center gap-3 px-4 py-3 border-l-4 border-transparent hover:bg-secondary/50 rounded-lg transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Calendário
           </button>
           <button onclick="switchTab('settings'); toggleMenuDrawer();" id="tab-settings-mobile" class="tab-btn admin-only w-full text-left flex items-center gap-3 px-4 py-3 border-l-4 border-transparent hover:bg-secondary/50 rounded-lg transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -419,52 +651,69 @@
     </div>
 
     <!-- Header -->
-    <header class="header-fixed border-b border-border">
-      <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-3">
+    <header class="header-fixed">
+      <div class="container mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-4">
           <!-- Botão Hambúrguer (Mobile) -->
-          <button onclick="toggleMenuDrawer()" class="md:hidden p-2 hover:bg-secondary/50 rounded-lg transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          <button onclick="toggleMenuDrawer()" class="md:hidden p-2 hover:bg-[rgba(0,0,0,0.05)] rounded-[12px] transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-[#1d1d1f] dark:text-[#f5f5f7]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          <div class="w-10 h-10 bg-[#007AFF] rounded-[12px] flex items-center justify-center shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
           </div>
           <div class="hidden sm:block">
-            <h1 class="text-xl font-bold text-foreground">Gestão de Cursos</h1>
-            <p class="text-sm text-muted-foreground">Cursos Profissionalizantes por Lote</p>
+            <h1 class="text-xl font-semibold text-[#1d1d1f] dark:text-[#f5f5f7]" style="letter-spacing: -0.02em;">IAC</h1>
+            <p class="text-sm text-[#8e8e93] dark:text-[#8e8e93]">Instituto de Arte e Cidadania do Ceará</p>
           </div>
           <div class="sm:hidden">
-            <h1 class="text-lg font-bold text-foreground">Gestão de Cursos</h1>
+            <h1 class="text-lg font-semibold text-[#1d1d1f] dark:text-[#f5f5f7]" style="letter-spacing: -0.02em;">IAC</h1>
         </div>
         </div>
         <!-- Botões Desktop -->
-        <div class="hidden md:flex items-center gap-2">
-          <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn active flex items-center gap-2 px-4 py-2 border-b-2 border-transparent hover:text-primary transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+        <div class="hidden md:flex items-center gap-3">
+          <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn flex items-center gap-2 px-4 py-2.5 text-[#8e8e93] hover:text-[#007AFF] transition-colors font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
             </svg>
             Dashboard
           </button>
-          <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn admin-only flex items-center gap-2 px-4 py-2 border-b-2 border-transparent hover:text-primary transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31 .826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <button onclick="switchTab('cronograma')" id="tab-cronograma" class="tab-btn active flex items-center gap-2 px-4 py-2.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-[#007AFF] transition-colors font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Cronograma
+          </button>
+          <button onclick="switchTab('calendar')" id="tab-calendar" class="tab-btn admin-only flex items-center gap-2 px-4 py-2.5 text-[#8e8e93] hover:text-[#007AFF] transition-colors font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Calendário
+          </button>
+          <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn admin-only flex items-center gap-2 px-4 py-2.5 text-[#8e8e93] hover:text-[#007AFF] transition-colors font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31 .826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             Configurações
           </button>
-          <button onclick="handleLogout()" id="logout-btn" class="admin-only flex items-center gap-2 px-4 py-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          <button onclick="toggleTheme()" class="flex items-center gap-2 px-3 py-2.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:bg-[rgba(0,0,0,0.05)] dark:hover:bg-[rgba(255,255,255,0.1)] rounded-[12px] transition-colors" title="Alternar tema">
+            <svg id="header-theme-icon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          </button>
+          <button onclick="handleLogout()" id="logout-btn" class="admin-only flex items-center gap-2 px-4 py-2.5 text-[#FF3B30] hover:bg-[rgba(255,59,48,0.1)] rounded-[12px] transition-colors font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
             Sair
           </button>
-          <button onclick="openLoginModal()" id="login-btn" class="view-only flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          <button onclick="openLoginModal()" id="login-btn" class="view-only flex items-center gap-2 px-5 py-2.5 bg-[#007AFF] hover:bg-[#0051D5] text-white rounded-[12px] transition-colors font-medium shadow-sm" style="box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
             Login
           </button>
@@ -473,18 +722,12 @@
     </header>
 
     <!-- Dashboard Tab Content -->
-    <main id="content-dashboard" class="container mx-auto px-2 md:px-4 py-6 space-y-6">
+    <main id="content-dashboard" class="container mx-auto px-2 md:px-4 py-6 space-y-6 hidden">
       <!-- Action Buttons (Desktop) -->
       <div class="admin-only hidden md:flex flex-wrap gap-3">
-        <button onclick="openImportModal()" class="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-          </svg>
-          Importar Planilha
-        </button>
-        <button onclick="openAddCourseModal()" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        <button onclick="openAddCourseModal()" class="flex items-center gap-2 bg-[#34C759] hover:bg-[#30D158] text-white px-5 py-2.5 rounded-[12px] transition-colors font-medium shadow-sm" style="box-shadow: 0 2px 8px rgba(52, 199, 89, 0.25);">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
           </svg>
           Adicionar Curso
         </button>
@@ -493,11 +736,6 @@
       <!-- FAB Menu (Mobile) -->
       <div class="admin-only md:hidden">
         <div id="fab-menu" class="fab-menu">
-          <button onclick="openImportModal(); toggleFABMenu();" class="fab-item bg-primary text-white">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-          </button>
           <button onclick="openAddCourseModal(); toggleFABMenu();" class="fab-item bg-green-600 text-white">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -518,29 +756,35 @@
       <div id="stats-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
 
       <!-- Filters -->
-      <div class="card-elegant rounded-2xl p-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="card-elegant rounded-[20px] p-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
-            <label class="block text-sm font-medium text-muted-foreground mb-2">Buscar Tipologia</label>
-            <input type="text" id="filter-search" placeholder="Digite para buscar..." 
-              class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary" 
+            <label class="block text-sm font-medium text-[#1d1d1f] dark:text-[#f5f5f7] mb-2">Buscar por ID</label>
+            <input type="text" id="filter-id" placeholder="Digite o ID do curso..." 
+              class="w-full px-4 py-3 text-[#1d1d1f] dark:text-[#f5f5f7] placeholder:text-[#8e8e93]" 
               oninput="applyFilters()">
           </div>
           <div>
-            <label class="block text-sm font-medium text-muted-foreground mb-2">Lote</label>
-            <select id="filter-lote" class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary" onchange="applyFilters()">
+            <label class="block text-sm font-medium text-[#1d1d1f] dark:text-[#f5f5f7] mb-2">Buscar Tipologia</label>
+            <input type="text" id="filter-search" placeholder="Digite para buscar..." 
+              class="w-full px-4 py-3 text-[#1d1d1f] dark:text-[#f5f5f7] placeholder:text-[#8e8e93]" 
+              oninput="applyFilters()">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[#1d1d1f] dark:text-[#f5f5f7] mb-2">Lote</label>
+            <select id="filter-lote" class="w-full px-4 py-3 text-[#1d1d1f] dark:text-[#f5f5f7]" onchange="applyFilters()">
               <option value="">Todos os Lotes</option>
             </select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-muted-foreground mb-2">Município</label>
-            <select id="filter-municipio" class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary" onchange="applyFilters()">
+            <label class="block text-sm font-medium text-[#1d1d1f] dark:text-[#f5f5f7] mb-2">Município</label>
+            <select id="filter-municipio" class="w-full px-4 py-3 text-[#1d1d1f] dark:text-[#f5f5f7]" onchange="applyFilters()">
               <option value="">Todos os Municípios</option>
             </select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-muted-foreground mb-2">Status</label>
-            <select id="filter-status" class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary" onchange="applyFilters()">
+            <label class="block text-sm font-medium text-[#1d1d1f] dark:text-[#f5f5f7] mb-2">Status</label>
+            <select id="filter-status" class="w-full px-4 py-3 text-[#1d1d1f] dark:text-[#f5f5f7]" onchange="applyFilters()">
               <option value="">Todos os Status</option>
               <option value="Concluído">Concluído</option>
               <option value="Pendente">Pendente</option>
@@ -554,10 +798,109 @@
       <div id="lot-sections" class="space-y-6"></div>
     </main>
 
+    <!-- Cronograma Tab Content -->
+    <main id="content-cronograma" class="container mx-auto px-2 md:px-4 py-6 space-y-6">
+      <!-- Header com pesquisa -->
+      <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <div>
+          <h2 class="text-2xl font-semibold text-[#1d1d1f] dark:text-[#f5f5f7]" style="letter-spacing: -0.02em;">Cronograma de Cursos</h2>
+          <p class="text-sm text-[#8e8e93] mt-1">Visualize e gerencie todos os cursos em formato de prateleira</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button onclick="openNotificationsModal()" id="notifications-btn" class="relative admin-only flex items-center gap-2 px-4 py-2 bg-[#FF9500] hover:bg-[#FF8800] text-white rounded-[12px] transition-colors font-medium shadow-sm" style="box-shadow: 0 2px 8px rgba(255, 149, 0, 0.25);">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            Notificações
+            <span id="notifications-badge" class="hidden absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">0</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra de Pesquisa -->
+      <div class="card-elegant rounded-[20px] p-4 mb-6">
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-[#8e8e93]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input type="text" id="cronograma-search" placeholder="Pesquisar por ID, Tipologia ou Município..." 
+            class="flex-1 px-4 py-2 bg-transparent text-[#1d1d1f] dark:text-[#f5f5f7] placeholder:text-[#8e8e93] focus:outline-none"
+            oninput="filterCronograma()">
+        </div>
+      </div>
+
+      <!-- Cards em Grid (4 colunas) -->
+      <div id="cronograma-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Cards serão renderizados aqui -->
+      </div>
+    </main>
+
+    <!-- Calendar Tab Content -->
+    <main id="content-calendar" class="container mx-auto px-2 md:px-4 py-6 space-y-6 hidden admin-only">
+      <div id="calendar-container" class="mb-6"></div>
+      
+      <!-- Lista de Tarefas -->
+      <div class="card-elegant rounded-[24px] p-6">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="text-2xl font-bold text-foreground mb-1" style="letter-spacing: -0.02em;">Tarefas</h3>
+            <p class="text-sm text-muted-foreground">Gerencie suas tarefas e acompanhe o progresso</p>
+          </div>
+          <button onclick="openAddTaskModal()" class="flex items-center gap-2 px-5 py-2.5 bg-[#34C759] hover:bg-[#30D158] text-white rounded-[14px] transition-all shadow-lg hover:shadow-xl font-medium" style="box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Nova Tarefa
+          </button>
+        </div>
+        <div id="tasks-list" class="space-y-3">
+          <!-- Tarefas serão renderizadas aqui -->
+        </div>
+      </div>
+    </main>
+
     <!-- Settings Tab Content -->
     <main id="content-settings" class="container mx-auto px-2 md:px-4 py-6 space-y-6 hidden">
       <div class="bg-card border border-border rounded-lg p-6">
         <h2 class="text-xl font-semibold text-foreground mb-6">Configurações</h2>
+        
+        <!-- Modo Escuro/Claro -->
+        <div class="border border-primary/30 rounded-lg p-4 bg-primary/5 mb-6">
+          <h3 class="text-lg font-medium text-foreground mb-2">Aparência</h3>
+          <p class="text-sm text-muted-foreground mb-4">Escolha entre modo claro ou escuro.</p>
+          
+          <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
+            <div>
+              <p class="font-medium text-foreground">Modo Escuro</p>
+              <p class="text-sm text-muted-foreground">Alterne entre tema claro e escuro.</p>
+            </div>
+            <button id="theme-toggle" onclick="toggleTheme()" class="flex items-center gap-2 bg-[#007AFF] hover:bg-[#0051D5] text-white px-4 py-2 rounded-lg transition-colors">
+              <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+              <span id="theme-text">Modo Escuro</span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Importar Planilha -->
+        <div class="border border-primary/30 rounded-lg p-4 bg-primary/5 mb-6">
+          <h3 class="text-lg font-medium text-foreground mb-2">Importação de Dados</h3>
+          <p class="text-sm text-muted-foreground mb-4">Importe cursos de uma planilha Excel ou CSV.</p>
+          
+          <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
+            <div>
+              <p class="font-medium text-foreground">Importar Planilha</p>
+              <p class="text-sm text-muted-foreground">Importa cursos de arquivos Excel (.xlsx, .xls) ou CSV.</p>
+            </div>
+            <button onclick="openImportModal()" class="flex items-center gap-2 bg-[#007AFF] hover:bg-[#0051D5] text-white px-4 py-2 rounded-lg transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              Importar
+            </button>
+          </div>
+        </div>
         
         <!-- Backup e Restauração -->
         <div class="border border-primary/30 rounded-lg p-4 bg-primary/5 mb-6">
@@ -590,6 +933,25 @@
                 Importar
               </button>
             </div>
+          </div>
+        </div>
+        
+        <!-- Relatórios -->
+        <div class="border border-primary/30 rounded-lg p-4 bg-primary/5 mb-6">
+          <h3 class="text-lg font-medium text-foreground mb-2">Relatórios</h3>
+          <p class="text-sm text-muted-foreground mb-4">Gere relatórios em PDF com estatísticas e gráficos.</p>
+          
+          <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
+            <div>
+              <p class="font-medium text-foreground">Gerar Relatório PNG</p>
+              <p class="text-sm text-muted-foreground">Relatório completo com estatísticas e gráfico pizza.</p>
+            </div>
+            <button onclick="generateReport()" class="admin-only flex items-center gap-2 bg-[#007AFF] hover:bg-[#0051D5] text-white px-4 py-2 rounded-lg transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Gerar PNG
+            </button>
           </div>
         </div>
         
@@ -1022,6 +1384,316 @@
     </div>
   </div>
 
+  <!-- Cronograma Course Modal -->
+  <div id="cronograma-course-modal" class="fixed inset-0 z-[1100] hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeCronogramaCourseModal(event)"></div>
+    <div class="modal-content w-full max-w-2xl max-h-[90vh] card-elegant md:rounded-2xl shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between p-6 border-b border-border/30">
+        <div>
+          <h2 class="text-2xl font-semibold text-foreground">Detalhes do Curso</h2>
+          <p class="text-sm text-muted-foreground mt-1">Visualize e edite as informações do curso</p>
+        </div>
+        <button onclick="closeCronogramaCourseModal()" class="p-2 hover:bg-secondary/50 rounded-lg transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto max-h-[70vh] scrollbar-thin space-y-6">
+        <!-- Informações do Curso (Somente Leitura) -->
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">ID do Curso</label>
+              <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground font-mono text-sm" id="cronograma-course-id">-</div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Tipologia</label>
+              <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground" id="cronograma-course-tipologia">-</div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Carga Horária</label>
+              <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground" id="cronograma-course-carga">-</div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Lote</label>
+              <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground" id="cronograma-course-lote">-</div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Município</label>
+              <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground" id="cronograma-course-municipio">-</div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Cozinha</label>
+              <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground" id="cronograma-course-cozinha">-</div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Status</label>
+              <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground" id="cronograma-course-status">-</div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Concludentes</label>
+              <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground" id="cronograma-course-concludentes">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campos Editáveis -->
+        <div id="cronograma-editable-section" class="border-t border-border/30 pt-6 hidden">
+          <h3 class="text-lg font-semibold text-foreground mb-4">Editar Informações</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Data Início *</label>
+              <input type="date" id="cronograma-edit-inicio" 
+                class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Data Fim *</label>
+              <input type="date" id="cronograma-edit-fim" 
+                class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mt-4">
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Status *</label>
+              <select id="cronograma-edit-status" class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                <option value="Pendente">Pendente</option>
+                <option value="Em andamento">Em andamento</option>
+                <option value="Concluído">Concluído</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Concludentes</label>
+              <input type="number" id="cronograma-edit-concludentes" placeholder="Ex: 30" 
+                class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mt-4">
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Instrutor</label>
+              <input type="text" id="cronograma-edit-instrutor" placeholder="Nome do instrutor" 
+                class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Endereço</label>
+              <input type="text" id="cronograma-edit-endereco" placeholder="Endereço do curso" 
+                class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mt-4">
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Link Álbum (Drive)</label>
+              <input type="url" id="cronograma-edit-album" placeholder="https://drive.google.com/..." 
+                class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Link Instrumentais (Drive)</label>
+              <input type="url" id="cronograma-edit-instrumentais" placeholder="https://drive.google.com/..." 
+                class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            </div>
+          </div>
+        </div>
+
+        <div id="cronograma-actions" class="flex justify-end gap-3 pt-4 border-t border-border/30 hidden">
+          <button onclick="closeCronogramaCourseModal()" class="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-secondary/50 transition-colors">
+            Cancelar
+          </button>
+          <button onclick="saveCronogramaCourse()" class="px-4 py-2 bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary text-white rounded-lg transition-all duration-300 flex items-center gap-2 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Salvar Alterações
+          </button>
+        </div>
+        
+        <div id="cronograma-view-only" class="flex justify-end gap-3 pt-4 border-t border-border/30">
+          <button onclick="closeCronogramaCourseModal()" class="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-secondary/50 transition-colors">
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar Modal -->
+  <div id="calendar-modal" class="fixed inset-0 z-[1100] hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeCalendarModal(event)"></div>
+    <div class="modal-content w-full max-w-6xl max-h-[95vh] card-elegant md:rounded-2xl shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between p-6 border-b border-border/30">
+        <div>
+          <h2 class="text-2xl font-semibold text-foreground">Calendário Inteligente</h2>
+          <p class="text-sm text-muted-foreground mt-1">Visualize cursos, eventos e tarefas</p>
+        </div>
+        <button onclick="closeCalendarModal()" class="p-2 hover:bg-secondary/50 rounded-lg transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto max-h-[80vh] scrollbar-thin">
+        <div id="calendar-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Event/Task Modal -->
+  <div id="add-event-modal" class="fixed inset-0 z-[1200] hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeAddEventModal()"></div>
+    <div class="modal-content w-full max-w-md max-h-[90vh] card-elegant md:rounded-2xl shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between p-6 border-b border-border/30">
+        <h2 class="text-xl font-semibold text-foreground">Adicionar Evento/Tarefa</h2>
+        <button onclick="closeAddEventModal()" class="p-2 hover:bg-secondary/50 rounded-lg transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto max-h-[calc(90vh-120px)] scrollbar-thin space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-muted-foreground mb-2">Tipo</label>
+          <select id="event-type" class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground">
+            <option value="event">Evento</option>
+            <option value="task">Tarefa</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-muted-foreground mb-2">Título *</label>
+          <input type="text" id="event-title" placeholder="Digite o título" 
+            class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-muted-foreground mb-2">Data *</label>
+          <input type="date" id="event-date" 
+            class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-muted-foreground mb-2">Descrição</label>
+          <textarea id="event-description" rows="3" placeholder="Descrição opcional" 
+            class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground"></textarea>
+        </div>
+        <div class="flex justify-end gap-3">
+          <button onclick="closeAddEventModal()" class="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-secondary/50 transition-colors">
+            Cancelar
+          </button>
+          <button onclick="saveEvent()" class="px-4 py-2 bg-[#007AFF] hover:bg-[#0051D5] text-white rounded-lg transition-colors">
+            Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day Details Modal -->
+  <div id="day-details-modal" class="fixed inset-0 z-[1200] hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeDayDetailsModal(event)"></div>
+    <div class="modal-content w-full max-w-2xl max-h-[90vh] card-elegant md:rounded-2xl shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between p-6 border-b border-border/30">
+        <div>
+          <h2 class="text-xl font-semibold text-foreground" id="day-details-title">Detalhes do Dia</h2>
+          <p class="text-sm text-muted-foreground mt-1" id="day-details-date"></p>
+        </div>
+        <button onclick="closeDayDetailsModal()" class="p-2 hover:bg-secondary/50 rounded-lg transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto max-h-[calc(90vh-120px)] scrollbar-thin">
+        <div id="day-details-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notifications Modal -->
+  <div id="notifications-modal" class="fixed inset-0 z-[1100] hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeNotificationsModal(event)"></div>
+    <div class="modal-content w-full max-w-2xl max-h-[90vh] card-elegant md:rounded-2xl shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between p-6 border-b border-border/30">
+        <div>
+          <h2 class="text-2xl font-semibold text-foreground">Notificações</h2>
+          <p class="text-sm text-muted-foreground mt-1">Alertas e lembretes importantes</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="deleteAllNotifications()" class="p-2 hover:bg-secondary/50 rounded-lg transition-colors text-muted-foreground hover:text-foreground" title="Excluir todas">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+          <button onclick="closeNotificationsModal()" class="p-2 hover:bg-secondary/50 rounded-lg transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="border-b border-border/30">
+        <div class="flex">
+          <button id="notif-tab-courses" onclick="switchNotificationTab('courses')" class="flex-1 px-4 py-3 text-sm font-medium text-foreground border-b-2 border-[#007AFF] transition-colors">
+            Cursos
+          </button>
+          <button id="notif-tab-tasks" onclick="switchNotificationTab('tasks')" class="flex-1 px-4 py-3 text-sm font-medium text-muted-foreground border-b-2 border-transparent hover:text-foreground transition-colors">
+            Tarefas/Eventos
+          </button>
+        </div>
+      </div>
+      <div class="p-6 overflow-y-auto max-h-[calc(90vh-180px)] scrollbar-thin">
+        <div id="notifications-list-courses" class="space-y-3"></div>
+        <div id="notifications-list-tasks" class="space-y-3 hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Update Status Modal -->
+  <div id="quick-update-modal" class="fixed inset-0 z-[1200] hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeQuickUpdateModal(event)"></div>
+    <div class="modal-content w-full max-w-md card-elegant md:rounded-2xl shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between p-6 border-b border-border/30">
+        <h2 class="text-xl font-semibold text-foreground">Atualizar Status</h2>
+        <button onclick="closeQuickUpdateModal()" class="p-2 hover:bg-secondary/50 rounded-lg transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-muted-foreground mb-2">ID do Curso</label>
+          <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground font-mono text-sm" id="quick-update-course-id">-</div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-muted-foreground mb-2">Tipologia</label>
+          <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground" id="quick-update-course-name">-</div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-muted-foreground mb-2">Novo Status</label>
+          <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground" id="quick-update-new-status">-</div>
+        </div>
+        <div id="quick-update-concludentes-div" class="hidden">
+          <label class="block text-sm font-medium text-muted-foreground mb-2">Concludentes *</label>
+          <input type="number" id="quick-update-concludentes" placeholder="Digite a quantidade" 
+            class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+          <p class="text-xs text-muted-foreground mt-1">Obrigatório ao concluir um curso</p>
+        </div>
+        <input type="hidden" id="quick-update-course-id-hidden">
+        <input type="hidden" id="quick-update-status-hidden">
+        <div class="flex justify-end gap-3 pt-4">
+          <button onclick="closeQuickUpdateModal()" class="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-secondary/50 transition-colors">
+            Cancelar
+          </button>
+          <button onclick="confirmQuickUpdate()" class="px-4 py-2 bg-[#007AFF] hover:bg-[#0051D5] text-white rounded-lg transition-colors">
+            Confirmar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     
     const STORAGE_KEY_COURSES = 'dashboard_courses';
@@ -1428,8 +2100,53 @@
       }
     }
 
+    // Theme Toggle Functions
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      if (savedTheme === 'dark') {
+        document.body.classList.add('dark');
+        updateThemeIcon(true);
+      } else {
+        document.body.classList.remove('dark');
+        updateThemeIcon(false);
+      }
+    }
+
+    function toggleTheme() {
+      const isDark = document.body.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      updateThemeIcon(isDark);
+    }
+
+    function updateThemeIcon(isDark) {
+      const themeIcon = document.getElementById('theme-icon');
+      const themeText = document.getElementById('theme-text');
+      const headerThemeIcon = document.getElementById('header-theme-icon');
+      
+      if (themeIcon && themeText) {
+        if (isDark) {
+          themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />';
+          themeText.textContent = 'Modo Claro';
+        } else {
+          themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />';
+          themeText.textContent = 'Modo Escuro';
+        }
+      }
+      
+      if (headerThemeIcon) {
+        if (isDark) {
+          headerThemeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />';
+        } else {
+          headerThemeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />';
+        }
+      }
+    }
+
     // Initialize
     document.addEventListener('DOMContentLoaded', async () => {
+      // Initialize theme
+      initTheme();
+      
       // Show loading screen
       setTimeout(async () => {
         // Wait for Firebase to be ready
@@ -1493,17 +2210,74 @@
         // Initialize filters and render
         updateFilters();
         renderAll();
+        
+        // Abrir cronograma por padrão
+        switchTab('cronograma');
+        
+        // Registrar service worker para PWA
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('/sw.js').then(registration => {
+            console.log('Service Worker registrado:', registration);
+          }).catch(error => {
+            console.log('Erro ao registrar Service Worker:', error);
+          });
+        }
+        
+        // Solicitar permissão de notificações
+        requestNotificationPermission();
       }, 800); // Simulate loading time
     });
 
     function switchTab(tab) {
-      document.getElementById('tab-dashboard').classList.remove('active');
-      document.getElementById('tab-settings').classList.remove('active');
-      document.getElementById('content-dashboard').classList.add('hidden');
-      document.getElementById('content-settings').classList.add('hidden');
+      // Remove active de todas as tabs
+      const tabs = ['dashboard', 'cronograma', 'calendar', 'settings'];
+      tabs.forEach(t => {
+        const tabEl = document.getElementById(`tab-${t}`);
+        const tabMobileEl = document.getElementById(`tab-${t}-mobile`);
+        const contentEl = document.getElementById(`content-${t}`);
+        
+        if (tabEl) {
+          tabEl.classList.remove('active');
+          tabEl.classList.remove('text-[#1d1d1f]', 'dark:text-[#f5f5f7]');
+          if (!tabEl.classList.contains('text-[#8e8e93]')) {
+            tabEl.classList.add('text-[#8e8e93]');
+          }
+        }
+        if (tabMobileEl) {
+          tabMobileEl.classList.remove('active');
+          tabMobileEl.classList.remove('border-[#007AFF]');
+          tabMobileEl.classList.add('border-transparent');
+        }
+        if (contentEl) {
+          contentEl.classList.add('hidden');
+        }
+      });
 
-      document.getElementById(`tab-${tab}`).classList.add('active');
-      document.getElementById(`content-${tab}`).classList.remove('hidden');
+      // Ativa a tab selecionada
+      const selectedTab = document.getElementById(`tab-${tab}`);
+      const selectedTabMobile = document.getElementById(`tab-${tab}-mobile`);
+      const selectedContent = document.getElementById(`content-${tab}`);
+      
+      if (selectedTab) {
+        selectedTab.classList.add('active');
+        selectedTab.classList.remove('text-[#8e8e93]');
+        selectedTab.classList.add('text-[#1d1d1f]', 'dark:text-[#f5f5f7]');
+      }
+      if (selectedTabMobile) {
+        selectedTabMobile.classList.add('active');
+        selectedTabMobile.classList.remove('border-transparent');
+        selectedTabMobile.classList.add('border-[#007AFF]');
+      }
+      if (selectedContent) {
+        selectedContent.classList.remove('hidden');
+        // Renderiza conteúdo específico se necessário
+        if (tab === 'cronograma') {
+          renderCronograma();
+        } else if (tab === 'calendar') {
+          renderCalendar();
+          renderTasksList();
+        }
+      }
     }
 
     function toggleMenuDrawer() {
@@ -1541,6 +2315,18 @@
       renderStats();
       renderLotSections();
       updateUIForLoginStatus(); // Ensure UI reflects login status after render
+      // Sincronizar cronograma sempre (mesmos dados da dashboard)
+      if (document.getElementById('cronograma-cards')) {
+        renderCronograma();
+      }
+      // Sincronizar calendário se estiver na aba
+      const calendarContent = document.getElementById('content-calendar');
+      if (calendarContent && !calendarContent.classList.contains('hidden')) {
+        renderCalendar();
+        renderTasksList();
+      }
+      // Atualizar notificações
+      checkNotifications();
     }
 
     function normalizeStatus(status) {
@@ -1549,18 +2335,19 @@
     }
 
     function renderStats() {
-      const total = filteredCourses.length;
-      const completed = filteredCourses.filter(c => normalizeStatus(c.status) === 'concluído').length;
-      const pending = filteredCourses.filter(c => normalizeStatus(c.status) === 'pendente').length;
-      const inProgress = filteredCourses.filter(c => {
+      // Usar courses (todos) ao invés de filteredCourses para mostrar sempre os totais
+      const total = courses.length;
+      const completed = courses.filter(c => normalizeStatus(c.status) === 'concluído').length;
+      const pending = courses.filter(c => normalizeStatus(c.status) === 'pendente').length;
+      const inProgress = courses.filter(c => {
         const normalized = normalizeStatus(c.status);
         return normalized === 'em andamento' || normalized === 'em andamento.';
       }).length;
       
       // Debug: Log status variations found
       if (inProgress === 0 && total > 0) {
-        const statusVariations = [...new Set(filteredCourses.map(c => c.status).filter(s => s))];
-        const statusVariationsNormalized = [...new Set(filteredCourses.map(c => normalizeStatus(c.status)).filter(s => s))];
+        const statusVariations = [...new Set(courses.map(c => c.status).filter(s => s))];
+        const statusVariationsNormalized = [...new Set(courses.map(c => normalizeStatus(c.status)).filter(s => s))];
         // Only log if there are status values but no matches for "em andamento"
         if (statusVariationsNormalized.some(s => s.includes('andamento'))) {
           console.log('Status variations found:', statusVariations);
@@ -1569,54 +2356,54 @@
       }
 
       document.getElementById('stats-cards').innerHTML = `
-        <div class="card-elegant rounded-2xl p-4">
+        <div class="card-elegant rounded-[20px] p-6">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-muted-foreground">Total de Cursos</p>
-              <p class="text-3xl font-bold text-foreground">${total}</p>
+              <p class="text-sm text-[#8e8e93] mb-1 font-medium">Total de Cursos</p>
+              <p class="text-3xl font-semibold text-[#1d1d1f] dark:text-[#f5f5f7]" style="letter-spacing: -0.03em;">${total}</p>
             </div>
-            <div class="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            <div class="w-14 h-14 bg-[rgba(0,122,255,0.1)] rounded-[16px] flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-[#007AFF]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
             </div>
           </div>
         </div>
-        <div class="card-elegant rounded-2xl p-4">
+        <div class="card-elegant rounded-[20px] p-6">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-muted-foreground">Concluídos</p>
-              <p class="text-3xl font-bold text-green-500">${completed}</p>
+              <p class="text-sm text-[#8e8e93] mb-1 font-medium">Concluídos</p>
+              <p class="text-3xl font-semibold text-[#34C759]" style="letter-spacing: -0.03em;">${completed}</p>
             </div>
-            <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center glow-border">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            <div class="w-14 h-14 bg-[rgba(52,199,89,0.1)] rounded-[16px] flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
           </div>
         </div>
-        <div class="card-elegant rounded-2xl p-4">
+        <div class="card-elegant rounded-[20px] p-6">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-muted-foreground">Pendentes</p>
-              <p class="text-3xl font-bold text-orange-500">${pending}</p>
+              <p class="text-sm text-[#8e8e93] mb-1 font-medium">Pendentes</p>
+              <p class="text-3xl font-semibold text-[#FF9500]" style="letter-spacing: -0.03em;">${pending}</p>
             </div>
-            <div class="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center glow-border">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <div class="w-14 h-14 bg-[rgba(255,149,0,0.1)] rounded-[16px] flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-[#FF9500]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
           </div>
         </div>
-        <div class="card-elegant rounded-2xl p-4">
+        <div class="card-elegant rounded-[20px] p-6">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-muted-foreground">Em Andamento</p>
-              <p class="text-3xl font-bold text-blue-500">${inProgress}</p>
+              <p class="text-sm text-[#8e8e93] mb-1 font-medium">Em Andamento</p>
+              <p class="text-3xl font-semibold text-[#007AFF]" style="letter-spacing: -0.03em;">${inProgress}</p>
             </div>
-            <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            <div class="w-14 h-14 bg-[rgba(0,122,255,0.1)] rounded-[16px] flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-[#007AFF]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
           </div>
@@ -1629,12 +2416,14 @@
       
       if (lots.length === 0) {
         document.getElementById('lot-sections').innerHTML = `
-          <div class="text-center py-12 text-muted-foreground">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <p class="text-lg">Nenhum curso cadastrado.</p>
-            <p class="text-sm mt-2">Importe uma planilha ou adicione cursos manualmente.</p>
+          <div class="text-center py-16">
+            <div class="w-20 h-20 bg-[rgba(142,142,147,0.1)] rounded-[20px] flex items-center justify-center mx-auto mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-[#8e8e93]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <p class="text-lg font-semibold text-[#1d1d1f] dark:text-[#f5f5f7] mb-2" style="letter-spacing: -0.02em;">Nenhum curso cadastrado</p>
+            <p class="text-sm text-[#8e8e93]">Importe uma planilha ou adicione cursos manualmente</p>
           </div>
         `;
         return;
@@ -1646,35 +2435,35 @@
         const pendingCount = lotCourses.filter(c => normalizeStatus(c.status) === 'pendente').length;
         
         return `
-          <div class="card-elegant rounded-2xl overflow-hidden relative mb-6">
-            <div class="p-5">
+          <div class="card-elegant rounded-[20px] overflow-hidden relative mb-6">
+            <div class="p-6">
               <!-- Header do Card: Título, Responsáveis e Ações -->
-              <div class="flex items-start justify-between gap-4 mb-4">
+              <div class="flex items-start justify-between gap-4 mb-5">
                 <div class="flex-1 min-w-0">
                   <!-- Primeira Linha: Lote e Responsáveis -->
                   <div class="flex items-center gap-4 flex-wrap mb-3">
-                    <div class="w-12 h-12 bg-gradient-to-br from-primary/30 to-blue-600/30 rounded-xl flex items-center justify-center glow-border flex-shrink-0">
-                      <span class="text-primary font-bold text-lg">${lot}</span>
+                    <div class="w-14 h-14 bg-[rgba(0,122,255,0.15)] rounded-[16px] flex items-center justify-center flex-shrink-0 border border-[rgba(0,122,255,0.2)]">
+                      <span class="text-[#007AFF] font-semibold text-lg" style="letter-spacing: -0.02em;">${lot}</span>
                   </div>
-                    <h2 class="text-xl font-semibold text-foreground">Lote ${lot}</h2>
+                    <h2 class="text-xl font-semibold text-[#1d1d1f] dark:text-[#f5f5f7]" style="letter-spacing: -0.02em;">Lote ${lot}</h2>
               ${responsibles.length > 0 ? `
                       <div class="flex items-center gap-3 flex-wrap">
                   ${responsibles.map(r => `
                           <div class="flex items-center gap-2">
-                            <div class="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0 border border-primary/30">
-                        <span class="text-primary text-sm font-medium">${r.name.charAt(0)}</span>
+                            <div class="w-10 h-10 bg-[rgba(0,122,255,0.15)] rounded-full flex items-center justify-center flex-shrink-0 border border-[rgba(0,122,255,0.2)]">
+                        <span class="text-[#007AFF] text-sm font-semibold">${r.name.charAt(0)}</span>
                       </div>
                             <div class="flex flex-col">
                               <div class="flex items-center gap-2">
-                                <p class="text-base font-medium text-foreground">${r.name}</p>
+                                <p class="text-base font-medium text-[#1d1d1f] dark:text-[#f5f5f7]">${r.name}</p>
                       <a href="https://wa.me/${r.phone.replace(/\D/g, '')}" target="_blank" 
-                                  class="w-8 h-8 bg-green-600/20 hover:bg-green-600/30 text-green-400 hover:text-green-300 rounded-lg flex items-center justify-center transition-all flex-shrink-0" title="Contatar via WhatsApp">
+                                  class="admin-only w-8 h-8 bg-[rgba(52,199,89,0.15)] hover:bg-[rgba(52,199,89,0.25)] text-[#34C759] rounded-[10px] flex items-center justify-center transition-all flex-shrink-0" title="Contatar via WhatsApp">
                                   <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                         </svg>
                       </a>
                               </div>
-                              <p class="text-xs text-muted-foreground">${r.cargo}</p>
+                              <p class="text-xs text-[#8e8e93]">${r.cargo}</p>
                             </div>
                     </div>
                   `).join('')}
@@ -1684,7 +2473,7 @@
                   
                   <!-- Segunda Linha: Quantidade de Cursos e Alertas -->
                   <div class="flex items-center gap-4 flex-wrap">
-                    <p class="text-sm text-muted-foreground">${lotCourses.length} curso(s)</p>
+                    <p class="text-sm text-[#8e8e93]">${lotCourses.length} curso(s)</p>
                     ${pendingCount > 0 ? `
                       <div class="alert-pending" title="${pendingCount} curso(s) pendente(s)">
                         <span>Cursos Pendentes</span>
@@ -1696,16 +2485,16 @@
                 
                 <!-- Botões de Ação Minimalistas -->
                 <div class="flex items-center gap-2 flex-shrink-0">
-                  <button onclick="downloadLotPDF(${lot})" class="w-10 h-10 flex items-center justify-center bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 rounded-xl transition-all duration-300 border border-red-600/30 hover:border-red-600/50" title="Baixar PDF do Lote">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  <button onclick="downloadLotPDF(${lot})" class="admin-only w-10 h-10 flex items-center justify-center bg-[rgba(255,59,48,0.15)] hover:bg-[rgba(255,59,48,0.25)] text-[#FF3B30] rounded-[12px] transition-all duration-200" title="Baixar PDF do Lote">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </button>
                   ${isLoggedIn ? `
-                  <button onclick="openResponsiblesModal(${lot})" class="w-10 h-10 flex items-center justify-center border border-border/50 hover:bg-secondary/50 text-foreground hover:text-primary rounded-xl transition-all duration-300 relative" title="Gerenciar Responsáveis">
-                    ${responsibles.length > 0 ? `<span class="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center">${responsibles.length}</span>` : ''}
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <button onclick="openResponsiblesModal(${lot})" class="w-10 h-10 flex items-center justify-center border border-[rgba(0,0,0,0.1)] dark:border-[rgba(255,255,255,0.1)] hover:bg-[rgba(0,0,0,0.05)] dark:hover:bg-[rgba(255,255,255,0.1)] text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-[#007AFF] rounded-[12px] transition-all duration-200 relative" title="Gerenciar Responsáveis">
+                    ${responsibles.length > 0 ? `<span class="absolute -top-1 -right-1 w-5 h-5 bg-[#007AFF] text-white text-xs rounded-full flex items-center justify-center font-semibold">${responsibles.length}</span>` : ''}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                   </button>
                   ` : ''}
@@ -1713,44 +2502,44 @@
               </div>
             </div>
             
-            <div class="border-t border-border/30"></div>
+            <div class="border-t border-[rgba(0,0,0,0.1)] dark:border-[rgba(255,255,255,0.1)]"></div>
             
             <!-- Desktop Table -->
-            <div class="hidden md:block overflow-x-auto">
+            <div class="hidden md:block overflow-x-auto p-4">
               <table class="w-full text-sm">
-                <thead class="bg-secondary/50">
+                <thead>
                   <tr>
                     <!-- Added ID column to table header -->
-                    <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">ID</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Tipologia</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Carga Horária</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Início</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Fim</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Município</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Cozinha</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Concludentes</th>
-                    ${isLoggedIn ? '<th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Ações</th>' : ''}
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-[#8e8e93] uppercase tracking-wider">ID</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-[#8e8e93] uppercase tracking-wider">Tipologia</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-[#8e8e93] uppercase tracking-wider">Carga Horária</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-[#8e8e93] uppercase tracking-wider">Início</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-[#8e8e93] uppercase tracking-wider">Fim</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-[#8e8e93] uppercase tracking-wider">Município</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-[#8e8e93] uppercase tracking-wider">Cozinha</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-[#8e8e93] uppercase tracking-wider">Status</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-[#8e8e93] uppercase tracking-wider">Concludentes</th>
+                    ${isLoggedIn ? '<th class="px-4 py-3 text-left text-xs font-semibold text-[#8e8e93] uppercase tracking-wider">Ações</th>' : ''}
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-border">
+                <tbody>
                   ${lotCourses.map(course => `
-                    <tr class="hover:bg-secondary/30 transition-colors cursor-pointer" onclick="openEditCourseModal('${course.id}')">
+                    <tr class="hover:bg-[rgba(0,0,0,0.02)] transition-colors cursor-pointer border-b border-[rgba(0,0,0,0.05)]" onclick="openEditCourseModal('${course.id}')">
                       <!-- Added ID column to table row -->
-                      <td class="px-4 py-3 text-muted-foreground font-mono text-xs">${course.idCurso || '-'}</td>
-                      <td class="px-4 py-3 text-foreground font-medium">${course.tipologia}</td>
-                      <td class="px-4 py-3 text-muted-foreground">${course.cargaHoraria}h</td>
-                      <td class="px-4 py-3 text-muted-foreground">${course.dataInicio ? formatDate(course.dataInicio) : '-'}</td>
-                      <td class="px-4 py-3 text-muted-foreground">${course.dataFim ? formatDate(course.dataFim) : '-'}</td>
-                      <td class="px-4 py-3 text-muted-foreground">${course.municipio}</td>
-                      <td class="px-4 py-3 text-muted-foreground">${course.cozinha || '-'}</td>
-                      <td class="px-4 py-3">${getStatusBadge(course.status)}</td>
-                      <td class="px-4 py-3 text-muted-foreground">${course.concludentes !== null ? course.concludentes : '-'}</td>
+                      <td class="px-4 py-4 text-[#8e8e93] font-mono text-xs">${course.idCurso || '-'}</td>
+                      <td class="px-4 py-4 text-[#1d1d1f] dark:text-[#f5f5f7] font-medium">${course.tipologia}</td>
+                      <td class="px-4 py-4 text-[#8e8e93]">${course.cargaHoraria}h</td>
+                      <td class="px-4 py-4 text-[#8e8e93]">${course.dataInicio ? formatDate(course.dataInicio) : '-'}</td>
+                      <td class="px-4 py-4 text-[#8e8e93]">${course.dataFim ? formatDate(course.dataFim) : '-'}</td>
+                      <td class="px-4 py-4 text-[#8e8e93]">${course.municipio}</td>
+                      <td class="px-4 py-4 text-[#8e8e93]">${course.cozinha || '-'}</td>
+                      <td class="px-4 py-4">${getStatusBadge(course.status)}</td>
+                      <td class="px-4 py-4 text-[#8e8e93]">${course.concludentes !== null ? course.concludentes : '-'}</td>
                       ${isLoggedIn ? `
-                      <td class="px-4 py-3">
-                        <button onclick="event.stopPropagation(); deleteCourse('${course.id}')" class="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors" title="Excluir curso">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      <td class="px-4 py-4">
+                        <button onclick="event.stopPropagation(); deleteCourse('${course.id}')" class="p-2 text-[#FF3B30] hover:bg-[rgba(255,59,48,0.1)] rounded-[10px] transition-colors" title="Excluir curso">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
                         </button>
                       </td>
@@ -1764,48 +2553,48 @@
             <!-- Mobile Cards -->
             <div class="md:hidden p-4 space-y-3">
               ${lotCourses.map(course => `
-                <div class="bg-secondary/30 border border-border rounded-lg p-4 space-y-3 cursor-pointer hover:bg-secondary/40 transition-colors" onclick="openEditCourseModal('${course.id}')">
+                <div class="bg-[rgba(255,255,255,0.5)] border border-[rgba(0,0,0,0.1)] rounded-[16px] p-4 space-y-3 cursor-pointer hover:bg-[rgba(255,255,255,0.7)] transition-colors" onclick="openEditCourseModal('${course.id}')">
                   <div class="flex items-start justify-between">
                     <div>
-                      <h3 class="font-medium text-foreground">${course.tipologia}</h3>
+                      <h3 class="font-semibold text-[#1d1d1f] dark:text-[#f5f5f7]">${course.tipologia}</h3>
                       <!-- Added ID display in mobile card -->
-                      <p class="text-xs text-muted-foreground font-mono">ID: ${course.idCurso || '-'}</p>
+                      <p class="text-xs text-[#8e8e93] font-mono mt-1">ID: ${course.idCurso || '-'}</p>
                     </div>
                     <div class="flex items-center gap-2">
                       ${getStatusBadge(course.status)}
                       ${isLoggedIn ? `
-                      <button onclick="event.stopPropagation(); deleteCourse('${course.id}')" class="p-1 text-red-400 hover:bg-red-500/20 rounded transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      <button onclick="event.stopPropagation(); deleteCourse('${course.id}')" class="p-1.5 text-[#FF3B30] hover:bg-[rgba(255,59,48,0.1)] rounded-[10px] transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
                       ` : ''}
                     </div>
                   </div>
-                  <div class="grid grid-cols-2 gap-2 text-sm">
+                  <div class="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <p class="text-muted-foreground">Carga Horária</p>
-                      <p class="text-foreground">${course.cargaHoraria}h</p>
+                      <p class="text-[#8e8e93] text-xs mb-1">Carga Horária</p>
+                      <p class="text-[#1d1d1f] dark:text-[#f5f5f7] font-medium">${course.cargaHoraria}h</p>
                     </div>
                     <div>
-                      <p class="text-muted-foreground">Município</p>
-                      <p class="text-foreground">${course.municipio}</p>
+                      <p class="text-[#8e8e93] text-xs mb-1">Município</p>
+                      <p class="text-[#1d1d1f] dark:text-[#f5f5f7] font-medium">${course.municipio}</p>
                     </div>
                     <div>
-                      <p class="text-muted-foreground">Cozinha</p>
-                      <p class="text-foreground">${course.cozinha || '-'}</p>
+                      <p class="text-[#8e8e93] text-xs mb-1">Cozinha</p>
+                      <p class="text-[#1d1d1f] dark:text-[#f5f5f7] font-medium">${course.cozinha || '-'}</p>
                     </div>
                     <div>
-                      <p class="text-muted-foreground">Início</p>
-                      <p class="text-foreground">${course.dataInicio ? formatDate(course.dataInicio) : '-'}</p>
+                      <p class="text-[#8e8e93] text-xs mb-1">Início</p>
+                      <p class="text-[#1d1d1f] dark:text-[#f5f5f7] font-medium">${course.dataInicio ? formatDate(course.dataInicio) : '-'}</p>
                     </div>
                     <div>
-                      <p class="text-muted-foreground">Fim</p>
-                      <p class="text-foreground">${course.dataFim ? formatDate(course.dataFim) : '-'}</p>
+                      <p class="text-[#8e8e93] text-xs mb-1">Fim</p>
+                      <p class="text-[#1d1d1f] dark:text-[#f5f5f7] font-medium">${course.dataFim ? formatDate(course.dataFim) : '-'}</p>
                     </div>
                     <div>
-                      <p class="text-muted-foreground">Concludentes</p>
-                      <p class="text-foreground">${course.concludentes !== null ? course.concludentes : '-'}</p>
+                      <p class="text-[#8e8e93] text-xs mb-1">Concludentes</p>
+                      <p class="text-[#1d1d1f] dark:text-[#f5f5f7] font-medium">${course.concludentes !== null ? course.concludentes : '-'}</p>
                     </div>
                   </div>
                 </div>
@@ -1820,20 +2609,42 @@
       if (!status) status = 'Pendente';
       const normalized = normalizeStatus(status);
       const statusMap = {
-        'concluído': { label: 'Concluído', style: 'bg-green-500/20 text-green-400 border-green-500/30' },
-        'pendente': { label: 'Pendente', style: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-        'em andamento': { label: 'Em andamento', style: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-        'em andamento.': { label: 'Em andamento', style: 'bg-blue-500/20 text-blue-400 border-blue-500/30' }
+        'concluído': { label: 'Concluído', style: 'bg-[rgba(52,199,89,0.15)] text-[#34C759] border-[rgba(52,199,89,0.2)]' },
+        'pendente': { label: 'Pendente', style: 'bg-[rgba(255,149,0,0.15)] text-[#FF9500] border-[rgba(255,149,0,0.2)]' },
+        'em andamento': { label: 'Em andamento', style: 'bg-[rgba(0,122,255,0.15)] text-[#007AFF] border-[rgba(0,122,255,0.2)]' },
+        'em andamento.': { label: 'Em andamento', style: 'bg-[rgba(0,122,255,0.15)] text-[#007AFF] border-[rgba(0,122,255,0.2)]' }
       };
       
-      const statusInfo = statusMap[normalized] || { label: String(status).trim() || 'Pendente', style: 'bg-gray-500/20 text-gray-400 border-gray-500/30' };
-      return `<span class="inline-flex px-2 py-1 text-xs font-medium rounded-full border ${statusInfo.style}">${statusInfo.label}</span>`;
+      const statusInfo = statusMap[normalized] || { label: String(status).trim() || 'Pendente', style: 'bg-[rgba(142,142,147,0.15)] text-[#8e8e93] border-[rgba(142,142,147,0.2)]' };
+      return `<span class="status-badge border ${statusInfo.style}">${statusInfo.label}</span>`;
     }
 
     function formatDate(dateStr) {
       if (!dateStr) return '-';
+      
+      // Se a data está no formato YYYY-MM-DD (sem hora), usar diretamente sem conversão de timezone
+      if (typeof dateStr === 'string') {
+        const dateOnly = dateStr.split('T')[0];
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+          const [year, month, day] = dateOnly.split('-');
+          return `${day}/${month}/${year}`;
+        }
+      }
+      
+      // Para datas com hora, criar data local explicitamente
       const date = new Date(dateStr);
-      return date.toLocaleDateString('pt-BR');
+      
+      // Verificar se a data é válida
+      if (isNaN(date.getTime())) {
+        return '-';
+      }
+      
+      // Usar componentes da data local para evitar problemas de timezone
+      // getDate(), getMonth(), getFullYear() sempre retornam valores locais
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
     }
 
     function updateFilters() {
@@ -1850,6 +2661,7 @@
     }
 
     function applyFilters() {
+      const searchId = document.getElementById('filter-id').value.trim();
       const search = document.getElementById('filter-search').value.toLowerCase();
       const lote = document.getElementById('filter-lote').value;
       const municipio = document.getElementById('filter-municipio').value;
@@ -1860,6 +2672,11 @@
         if (municipio && course.municipio !== municipio) return false;
         if (status && course.status !== status) return false;
         if (search && !course.tipologia.toLowerCase().includes(search)) return false;
+        // Busca por ID do curso (case-insensitive e busca parcial)
+        if (searchId) {
+          const courseId = course.idCurso ? String(course.idCurso).toLowerCase() : '';
+          if (!courseId.includes(searchId.toLowerCase())) return false;
+        }
         return true;
       });
 
@@ -2927,6 +3744,1429 @@
       // Salvar PDF
       doc.save(`Lote-${lotNumber}-${new Date().toISOString().split('T')[0]}.pdf`);
     }
+
+    // Variáveis globais para cronograma, calendário e notificações (serão inicializadas)
+    let calendarEvents = [];
+    let calendarTasks = [];
+    let notifications = [];
+    
+    // Inicializar calendário ao carregar
+    function initCalendar() {
+      try {
+        calendarEvents = JSON.parse(localStorage.getItem('calendar_events')) || [];
+        calendarTasks = JSON.parse(localStorage.getItem('calendar_tasks')) || [];
+      } catch (e) {
+        calendarEvents = [];
+        calendarTasks = [];
+      }
+    }
+
+    // Renderizar Cronograma
+    function renderCronograma() {
+      const container = document.getElementById('cronograma-cards');
+      if (!container) return;
+
+      if (courses.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-16">
+            <div class="w-20 h-20 bg-[rgba(142,142,147,0.1)] rounded-[20px] flex items-center justify-center mx-auto mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-[#8e8e93]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <p class="text-lg font-semibold text-[#1d1d1f] dark:text-[#f5f5f7] mb-2" style="letter-spacing: -0.02em;">Nenhum curso cadastrado</p>
+            <p class="text-sm text-[#8e8e93]">Importe uma planilha ou adicione cursos manualmente</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Ordenar por data (mais recente primeiro)
+      const sortedCourses = [...courses].sort((a, b) => {
+        const dateA = a.dataInicio ? new Date(a.dataInicio) : new Date(0);
+        const dateB = b.dataInicio ? new Date(b.dataInicio) : new Date(0);
+        return dateB - dateA; // Mais recente primeiro
+      });
+
+      // Aplicar filtro de pesquisa se existir
+      const searchTerm = document.getElementById('cronograma-search')?.value.toLowerCase() || '';
+      const filteredCourses = searchTerm ? sortedCourses.filter(course => {
+        const id = (course.idCurso || '').toLowerCase();
+        const tipologia = (course.tipologia || '').toLowerCase();
+        const municipio = (course.municipio || '').toLowerCase();
+        return id.includes(searchTerm) || tipologia.includes(searchTerm) || municipio.includes(searchTerm);
+      }) : sortedCourses;
+
+      if (filteredCourses.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-16">
+            <p class="text-lg font-semibold text-[#1d1d1f] dark:text-[#f5f5f7] mb-2">Nenhum curso encontrado</p>
+            <p class="text-sm text-[#8e8e93]">Tente ajustar sua pesquisa</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filteredCourses.map(course => {
+        const statusColor = {
+          'Concluído': 'bg-[rgba(52,199,89,0.15)] text-[#34C759] border-[rgba(52,199,89,0.2)]',
+          'Pendente': 'bg-[rgba(255,149,0,0.15)] text-[#FF9500] border-[rgba(255,149,0,0.2)]',
+          'Em andamento': 'bg-[rgba(0,122,255,0.15)] text-[#007AFF] border-[rgba(0,122,255,0.2)]'
+        }[course.status] || 'bg-[rgba(142,142,147,0.15)] text-[#8e8e93] border-[rgba(142,142,147,0.2)]';
+
+        return `
+          <div class="card-elegant rounded-[20px] p-5 cursor-pointer hover:scale-[1.02] transition-all duration-200" onclick="openCronogramaCourseModal('${course.id}')">
+            <div class="space-y-3">
+              <!-- Header com Status -->
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <h3 class="font-semibold text-[#1d1d1f] dark:text-[#f5f5f7] text-base mb-1 line-clamp-2" style="letter-spacing: -0.01em;">${course.tipologia}</h3>
+                  <p class="text-xs text-[#8e8e93] font-mono">ID: ${course.idCurso || '-'}</p>
+                </div>
+                <span class="status-badge border ${statusColor} text-xs px-2 py-1 rounded-[8px] whitespace-nowrap">${course.status || 'Pendente'}</span>
+              </div>
+
+              <!-- Informações principais -->
+              <div class="space-y-2 text-sm">
+                <div class="flex items-center gap-2 text-[#8e8e93]">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  <span>Lote ${course.lote}</span>
+                </div>
+                <div class="flex items-center gap-2 text-[#8e8e93]">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span class="truncate">${course.municipio}</span>
+                </div>
+                <div class="flex items-center gap-2 text-[#8e8e93]">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>${course.cargaHoraria || '-'}h</span>
+                </div>
+                ${course.dataInicio ? `
+                <div class="flex items-center gap-2 text-[#8e8e93]">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span class="text-xs">${formatDate(course.dataInicio)} - ${course.dataFim ? formatDate(course.dataFim) : '?'}</span>
+                </div>
+                ` : ''}
+                ${course.concludentes !== null ? `
+                <div class="flex items-center gap-2 text-[#8e8e93]">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  <span>${course.concludentes} concludentes</span>
+                </div>
+                ` : ''}
+              </div>
+
+              ${isLoggedIn ? `
+              <!-- Botões Album e Instrumentais -->
+              <div class="flex gap-2 pt-2 border-t border-[rgba(0,0,0,0.1)] dark:border-[rgba(255,255,255,0.1)]">
+                <button onclick="event.stopPropagation(); openDriveLink('${course.id}', 'album')" class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-[rgba(0,122,255,0.1)] hover:bg-[rgba(0,122,255,0.2)] text-[#007AFF] rounded-[10px] transition-colors text-xs font-medium">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Álbum
+                </button>
+                <button onclick="event.stopPropagation(); openDriveLink('${course.id}', 'instrumentais')" class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-[rgba(52,199,89,0.1)] hover:bg-[rgba(52,199,89,0.2)] text-[#34C759] rounded-[10px] transition-colors text-xs font-medium">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                  </svg>
+                  Instrumentais
+                </button>
+              </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Filtrar cronograma
+    function filterCronograma() {
+      renderCronograma();
+    }
+
+    // Abrir link do Drive
+    function openDriveLink(courseId, type) {
+      const course = courses.find(c => c.id === courseId);
+      if (!course) return;
+
+      const link = type === 'album' ? (course.albumLink || '') : (course.instrumentaisLink || '');
+      
+      if (link) {
+        window.open(link, '_blank');
+      } else {
+        // Se não tem link, abre modal para adicionar
+        openCronogramaCourseModal(courseId);
+        setTimeout(() => {
+          const inputId = type === 'album' ? 'edit-course-album' : 'edit-course-instrumentais';
+          const input = document.getElementById(inputId);
+          if (input) {
+            input.focus();
+            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 300);
+      }
+    }
+
+    // Abrir modal de curso no cronograma
+    function openCronogramaCourseModal(courseId) {
+      const course = courses.find(c => c.id === courseId);
+      if (!course) return;
+
+      currentEditCourse = course;
+      
+      // Preencher modal
+      document.getElementById('cronograma-course-id').textContent = course.idCurso || '-';
+      document.getElementById('cronograma-course-tipologia').textContent = course.tipologia || '-';
+      document.getElementById('cronograma-course-lote').textContent = course.lote || '-';
+      document.getElementById('cronograma-course-carga').textContent = course.cargaHoraria ? `${course.cargaHoraria}h` : '-';
+      document.getElementById('cronograma-course-municipio').textContent = course.municipio || '-';
+      document.getElementById('cronograma-course-cozinha').textContent = course.cozinha || '-';
+      document.getElementById('cronograma-course-status').textContent = course.status || 'Pendente';
+      document.getElementById('cronograma-course-concludentes').textContent = course.concludentes !== null ? course.concludentes : '-';
+      
+      // Campos editáveis
+      document.getElementById('cronograma-edit-inicio').value = course.dataInicio || '';
+      document.getElementById('cronograma-edit-fim').value = course.dataFim || '';
+      document.getElementById('cronograma-edit-status').value = course.status || 'Pendente';
+      document.getElementById('cronograma-edit-concludentes').value = course.concludentes !== null ? course.concludentes : '';
+      document.getElementById('cronograma-edit-instrutor').value = course.instrutor || '';
+      document.getElementById('cronograma-edit-endereco').value = course.endereco || '';
+      document.getElementById('cronograma-edit-album').value = course.albumLink || '';
+      document.getElementById('cronograma-edit-instrumentais').value = course.instrumentaisLink || '';
+
+      // Mostrar/ocultar seção de edição
+      const editableSection = document.getElementById('cronograma-editable-section');
+      const actionsSection = document.getElementById('cronograma-actions');
+      const viewOnlySection = document.getElementById('cronograma-view-only');
+      
+      if (isLoggedIn) {
+        editableSection.classList.remove('hidden');
+        actionsSection.classList.remove('hidden');
+        viewOnlySection.classList.add('hidden');
+      } else {
+        editableSection.classList.add('hidden');
+        actionsSection.classList.add('hidden');
+        viewOnlySection.classList.remove('hidden');
+      }
+
+      document.getElementById('cronograma-course-modal').classList.remove('hidden');
+      document.body.classList.add('modal-open');
+    }
+
+    function closeCronogramaCourseModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('cronograma-course-modal').classList.add('hidden');
+      document.body.classList.remove('modal-open');
+      currentEditCourse = null;
+    }
+
+    function saveCronogramaCourse() {
+      if (!currentEditCourse || !isLoggedIn) return;
+
+      const courseIndex = courses.findIndex(c => c.id === currentEditCourse.id);
+      if (courseIndex === -1) return;
+
+      courses[courseIndex].dataInicio = document.getElementById('cronograma-edit-inicio').value || null;
+      courses[courseIndex].dataFim = document.getElementById('cronograma-edit-fim').value || null;
+      courses[courseIndex].status = document.getElementById('cronograma-edit-status').value;
+      courses[courseIndex].concludentes = document.getElementById('cronograma-edit-concludentes').value ? parseInt(document.getElementById('cronograma-edit-concludentes').value) : null;
+      courses[courseIndex].instrutor = document.getElementById('cronograma-edit-instrutor').value.trim() || null;
+      courses[courseIndex].endereco = document.getElementById('cronograma-edit-endereco').value.trim() || null;
+      courses[courseIndex].albumLink = document.getElementById('cronograma-edit-album').value.trim() || null;
+      courses[courseIndex].instrumentaisLink = document.getElementById('cronograma-edit-instrumentais').value.trim() || null;
+
+      filteredCourses = [...courses];
+      saveToStorage();
+      renderAll();
+      renderCronograma();
+      closeCronogramaCourseModal();
+      alert('Curso atualizado com sucesso!');
+    }
+
+    // Variáveis globais para navegação do calendário
+    let calendarCurrentMonth = new Date().getMonth();
+    let calendarCurrentYear = new Date().getFullYear();
+
+    // Calendário Inteligente (agora é uma aba)
+    function renderCalendar() {
+      const calendarContainer = document.getElementById('calendar-container');
+      if (!calendarContainer) return;
+
+      const today = new Date();
+      const currentMonth = calendarCurrentMonth;
+      const currentYear = calendarCurrentYear;
+      
+      const coursesWithDates = courses.filter(c => c.dataInicio || c.dataFim);
+      const allEvents = [...calendarEvents, ...calendarTasks];
+      
+      const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      
+      const monthName = new Date(currentYear, currentMonth).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      
+      let calendarHTML = `
+        <div class="card-elegant rounded-[24px] p-5 mb-6">
+          <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-4">
+              <button onclick="changeCalendarMonth(-1)" class="p-2 hover:bg-secondary/50 rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <div>
+                <h2 class="text-xl font-bold text-foreground mb-0.5" style="letter-spacing: -0.02em;">${monthName}</h2>
+                <p class="text-xs text-muted-foreground">Clique duas vezes em um dia para adicionar evento ou tarefa</p>
+              </div>
+              <button onclick="changeCalendarMonth(1)" class="p-2 hover:bg-secondary/50 rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="openAddEventModal()" class="flex items-center gap-2 px-4 py-2 bg-[#007AFF] hover:bg-[#0051D5] text-white rounded-[12px] text-sm font-medium transition-all shadow-md hover:shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                Evento
+              </button>
+              <button onclick="openAddTaskModal()" class="flex items-center gap-2 px-4 py-2 bg-[#34C759] hover:bg-[#30D158] text-white rounded-[12px] text-sm font-medium transition-all shadow-md hover:shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                Tarefa
+              </button>
+            </div>
+          </div>
+          <div class="grid grid-cols-7 gap-2 mb-3">
+            ${['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => `
+              <div class="text-center text-xs font-bold text-foreground py-2 bg-secondary/30 rounded-[8px]">${day}</div>
+            `).join('')}
+          </div>
+          <div class="grid grid-cols-7 gap-2">
+      `;
+
+      for (let i = 0; i < firstDay; i++) {
+        calendarHTML += '<div class="h-[110px]"></div>';
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayEvents = allEvents.filter(e => e.date === dateStr);
+        const dayCourses = coursesWithDates.filter(c => {
+          const inicio = c.dataInicio ? c.dataInicio.split('T')[0] : null;
+          const fim = c.dataFim ? c.dataFim.split('T')[0] : null;
+          return dateStr === inicio || dateStr === fim;
+        });
+
+        const isToday = dateStr === today.toISOString().split('T')[0];
+        const hasContent = dayCourses.length > 0 || dayEvents.length > 0;
+        
+        // Separar cursos por início e fim
+        const cursosIniciando = dayCourses.filter(c => c.dataInicio && c.dataInicio.split('T')[0] === dateStr);
+        const cursosFinalizando = dayCourses.filter(c => c.dataFim && c.dataFim.split('T')[0] === dateStr);
+        
+        // Verificar feriados e datas comemorativas
+        const holiday = getHoliday(dateStr);
+        
+        const maxVisible = 2;
+        const visibleCourses = dayCourses.slice(0, maxVisible);
+        const visibleEvents = dayEvents.slice(0, maxVisible - visibleCourses.length);
+        // Botão "ver mais" aparece quando tiver mais cursos/eventos do que o máximo visível
+        const totalVisible = visibleCourses.length + visibleEvents.length;
+        const totalItems = dayCourses.length + dayEvents.length;
+        const hasMore = totalItems > totalVisible && totalItems > 0;
+        
+        calendarHTML += `
+          <div class="h-[110px] border-2 ${isToday ? 'border-[#007AFF] bg-gradient-to-br from-[rgba(0,122,255,0.15)] to-[rgba(0,122,255,0.05)] shadow-md' : hasContent ? 'border-border/40 bg-card/50' : 'border-border/20 bg-secondary/20'} rounded-[12px] p-2 overflow-hidden ${hasContent ? 'cursor-pointer' : ''} hover:border-[#007AFF]/50 hover:shadow-md transition-all duration-200" 
+               ${hasContent ? `onclick="if(event.target.tagName !== 'BUTTON' && event.target.closest('button') === null && event.target.closest('.group') === null && event.target.closest('[onclick*=\"openCronogramaCourseModal\"]') === null && event.target.closest('[onclick*=\"showTaskEventInfo\"]') === null) { openDayDetailsModal('${dateStr}'); }"` : ''}
+               ondblclick="openAddEventModalForDate('${dateStr}')">
+            <div class="flex items-center justify-between mb-1">
+              <div class="text-sm font-bold ${isToday ? 'text-[#007AFF]' : 'text-foreground'}">${day}</div>
+              ${isToday ? '<div class="w-1.5 h-1.5 bg-[#007AFF] rounded-full"></div>' : ''}
+            </div>
+            ${holiday ? `
+              <div class="text-[9px] bg-[rgba(255,59,48,0.2)] dark:bg-[rgba(255,59,48,0.3)] text-[#FF3B30] dark:text-[#FF6961] rounded px-1.5 py-0.5 mb-1 font-semibold">
+                ${holiday}
+              </div>
+            ` : ''}
+            ${cursosIniciando.length > 0 ? `
+              <div class="text-[9px] text-[#007AFF] dark:text-[#5AC8FA] font-medium mb-0.5">
+                ${cursosIniciando.length} curso${cursosIniciando.length > 1 ? 's' : ''} iniciando
+              </div>
+            ` : ''}
+            ${cursosFinalizando.length > 0 ? `
+              <div class="text-[9px] text-[#007AFF] dark:text-[#5AC8FA] font-medium mb-0.5">
+                ${cursosFinalizando.length} curso${cursosFinalizando.length > 1 ? 's' : ''} finalizando
+              </div>
+            ` : ''}
+            <div class="space-y-1 overflow-hidden">
+            ${visibleCourses.map(c => {
+              const isStart = c.dataInicio && c.dataInicio.split('T')[0] === dateStr;
+              return `
+              <div class="group text-[10px] bg-[rgba(0,122,255,0.25)] dark:bg-[rgba(0,122,255,0.4)] text-[#007AFF] dark:text-[#5AC8FA] rounded-[6px] px-1.5 py-1 mb-0.5 cursor-pointer hover:bg-[rgba(0,122,255,0.35)] dark:hover:bg-[rgba(0,122,255,0.5)] transition-all" 
+                   onclick="event.stopPropagation(); openCronogramaCourseModal('${c.id}')"
+                   onmouseenter="showCourseTooltip(event, '${c.idCurso || '-'}', '${(c.tipologia || '').replace(/'/g, "\\'")}', '${(c.municipio || '').replace(/'/g, "\\'")}')"
+                   onmouseleave="hideCourseTooltip()">
+                <div class="flex items-center gap-1">
+                  <span class="text-[8px]">${isStart ? '▶' : '■'}</span>
+                  <div class="font-semibold truncate text-[10px]">${c.idCurso || 'Curso'}</div>
+                </div>
+              </div>
+            `;
+            }).join('')}
+            ${visibleEvents.map(e => `
+              <div class="text-[10px] ${e.type === 'task' ? 'bg-[rgba(255,149,0,0.25)] dark:bg-[rgba(255,149,0,0.4)] text-[#FF9500] dark:text-[#FFB340]' : 'bg-[rgba(52,199,89,0.25)] dark:bg-[rgba(52,199,89,0.4)] text-[#34C759] dark:text-[#5FE57F]'} rounded-[6px] px-1.5 py-1 mb-0.5 cursor-pointer hover:opacity-90 transition-all" 
+                   onclick="event.stopPropagation(); showTaskEventInfo('${e.id}', '${e.type}')">
+                <div class="flex items-center gap-1">
+                  <span class="text-[8px]">${e.type === 'task' ? '✓' : '●'}</span>
+                  <div class="font-semibold truncate text-[10px]">${e.title}</div>
+                </div>
+              </div>
+            `).join('')}
+            ${hasMore ? `
+              <button onclick="event.stopPropagation(); openDayDetailsModal('${dateStr}')" class="w-full text-[9px] text-[#007AFF] dark:text-[#5AC8FA] font-medium hover:underline mt-1">
+                Ver mais
+              </button>
+            ` : ''}
+            </div>
+          </div>
+        `;
+      }
+
+      calendarHTML += '</div>';
+      calendarContainer.innerHTML = calendarHTML;
+    }
+
+    function openAddEventModal() {
+      document.getElementById('add-event-modal').classList.remove('hidden');
+      document.getElementById('event-title').value = '';
+      document.getElementById('event-date').value = '';
+      document.getElementById('event-description').value = '';
+      document.getElementById('event-type').value = 'event';
+    }
+
+    function openAddTaskModal() {
+      document.getElementById('add-event-modal').classList.remove('hidden');
+      document.getElementById('event-title').value = '';
+      document.getElementById('event-date').value = '';
+      document.getElementById('event-description').value = '';
+      document.getElementById('event-type').value = 'task';
+    }
+
+    function closeAddEventModal() {
+      document.getElementById('add-event-modal').classList.add('hidden');
+    }
+
+    function saveEvent() {
+      const title = document.getElementById('event-title').value.trim();
+      const date = document.getElementById('event-date').value;
+      const description = document.getElementById('event-description').value.trim();
+      const type = document.getElementById('event-type').value;
+
+      if (!title || !date) {
+        alert('Preencha título e data');
+        return;
+      }
+
+      const newItem = {
+        id: `item-${Date.now()}`,
+        title,
+        date,
+        description,
+        type,
+        createdAt: new Date().toISOString()
+      };
+
+      if (type === 'task') {
+        calendarTasks.push(newItem);
+        localStorage.setItem('calendar_tasks', JSON.stringify(calendarTasks));
+      } else {
+        calendarEvents.push(newItem);
+        localStorage.setItem('calendar_events', JSON.stringify(calendarEvents));
+      }
+
+      renderCalendar();
+      renderTasksList();
+      closeAddEventModal();
+      checkNotifications();
+      alert('Salvo com sucesso!');
+    }
+
+    function changeCalendarMonth(direction) {
+      calendarCurrentMonth += direction;
+      if (calendarCurrentMonth < 0) {
+        calendarCurrentMonth = 11;
+        calendarCurrentYear--;
+      } else if (calendarCurrentMonth > 11) {
+        calendarCurrentMonth = 0;
+        calendarCurrentYear++;
+      }
+      renderCalendar();
+    }
+
+    function openDayDetailsModal(dateStr) {
+      const date = new Date(dateStr + 'T00:00:00');
+      const dateFormatted = date.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      
+      document.getElementById('day-details-title').textContent = 'Detalhes do Dia';
+      document.getElementById('day-details-date').textContent = dateFormatted;
+      document.getElementById('day-details-date').setAttribute('data-date', dateStr);
+      
+      const coursesWithDates = courses.filter(c => c.dataInicio || c.dataFim);
+      const allEvents = [...calendarEvents, ...calendarTasks];
+      
+      const dayCourses = coursesWithDates.filter(c => {
+        const inicio = c.dataInicio ? c.dataInicio.split('T')[0] : null;
+        const fim = c.dataFim ? c.dataFim.split('T')[0] : null;
+        return dateStr === inicio || dateStr === fim;
+      });
+      
+      const dayEvents = allEvents.filter(e => e.date === dateStr);
+      
+      let contentHTML = '';
+      
+      if (dayCourses.length > 0) {
+        contentHTML += `
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold text-foreground mb-4">Cursos</h3>
+            <div class="space-y-3">
+              ${dayCourses.map(c => {
+                const isStart = c.dataInicio && c.dataInicio.split('T')[0] === dateStr;
+                return `
+                  <div class="p-4 border border-[rgba(0,122,255,0.3)] bg-[rgba(0,122,255,0.1)] dark:bg-[rgba(0,122,255,0.2)] rounded-lg cursor-pointer hover:bg-[rgba(0,122,255,0.15)] dark:hover:bg-[rgba(0,122,255,0.3)] transition-colors" onclick="openCronogramaCourseModal('${c.id}')">
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                          <span class="text-[#007AFF] dark:text-[#5AC8FA] font-semibold">${isStart ? '▶ Início' : '■ Fim'}</span>
+                          <span class="text-sm font-mono text-foreground">ID: ${c.idCurso || '-'}</span>
+                        </div>
+                        <h4 class="font-semibold text-foreground mb-1">${c.tipologia || '-'}</h4>
+                        <div class="text-sm text-muted-foreground space-y-1">
+                          <p>Município: ${c.municipio || '-'}</p>
+                          <p>Lote: ${c.lote || '-'}</p>
+                          ${c.cargaHoraria ? `<p>Carga Horária: ${c.cargaHoraria}h</p>` : ''}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+      
+      if (dayEvents.length > 0) {
+        contentHTML += `
+          <div>
+            <h3 class="text-lg font-semibold text-foreground mb-4">Eventos e Tarefas</h3>
+            <div class="space-y-3">
+              ${dayEvents.map(e => `
+                <div class="p-4 border ${e.type === 'task' ? 'border-[rgba(255,149,0,0.3)] bg-[rgba(255,149,0,0.1)] dark:bg-[rgba(255,149,0,0.2)]' : 'border-[rgba(52,199,89,0.3)] bg-[rgba(52,199,89,0.1)] dark:bg-[rgba(52,199,89,0.2)]'} rounded-lg">
+                  <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                      <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xs font-semibold ${e.type === 'task' ? 'text-[#FF9500] dark:text-[#FFB340]' : 'text-[#34C759] dark:text-[#5FE57F]'}">${e.type === 'task' ? '✓ Tarefa' : '● Evento'}</span>
+                        ${e.completed ? '<span class="text-xs text-[#34C759]">✓ Concluída</span>' : ''}
+                      </div>
+                      <h4 class="font-semibold text-foreground mb-1">${e.title}</h4>
+                      ${e.description ? `<p class="text-sm text-muted-foreground">${e.description}</p>` : ''}
+                    </div>
+                    ${e.type === 'task' ? `
+                      <button onclick="deleteTask('${e.id}')" class="ml-4 p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Excluir tarefa">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+      
+      if (dayCourses.length === 0 && dayEvents.length === 0) {
+        contentHTML = `
+          <div class="text-center py-8 text-muted-foreground">
+            <p>Nenhum evento ou curso neste dia</p>
+          </div>
+        `;
+      }
+      
+      document.getElementById('day-details-content').innerHTML = contentHTML;
+      document.getElementById('day-details-modal').classList.remove('hidden');
+      document.body.classList.add('modal-open');
+    }
+
+    function closeDayDetailsModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('day-details-modal').classList.add('hidden');
+      document.body.classList.remove('modal-open');
+    }
+
+    function deleteTask(taskId) {
+      if (!confirm('Tem certeza que deseja excluir esta tarefa?')) return;
+      
+      const taskIndex = calendarTasks.findIndex(t => t.id === taskId);
+      if (taskIndex === -1) return;
+      
+      calendarTasks.splice(taskIndex, 1);
+      localStorage.setItem('calendar_tasks', JSON.stringify(calendarTasks));
+      
+      renderCalendar();
+      renderTasksList();
+      checkNotifications();
+      
+      // Atualizar modal se estiver aberto
+      const dayDetailsModal = document.getElementById('day-details-modal');
+      if (!dayDetailsModal.classList.contains('hidden')) {
+        const dateStr = document.getElementById('day-details-date').getAttribute('data-date');
+        if (dateStr) {
+          openDayDetailsModal(dateStr);
+        }
+      }
+      
+      alert('Tarefa excluída com sucesso!');
+    }
+
+    // Tooltip para cursos no calendário
+    function showCourseTooltip(event, id, tipologia, municipio) {
+      let tooltip = document.getElementById('course-tooltip');
+      if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.id = 'course-tooltip';
+        tooltip.className = 'fixed z-[2000] bg-[#1d1d1f] dark:bg-[#f5f5f7] text-white dark:text-[#1d1d1f] px-4 py-3 rounded-lg shadow-xl text-sm pointer-events-none';
+        tooltip.style.display = 'none';
+        document.body.appendChild(tooltip);
+      }
+      tooltip.innerHTML = `
+        <div class="font-semibold mb-1">ID: ${id}</div>
+        <div class="mb-1">${tipologia}</div>
+        <div class="text-xs opacity-80">${municipio}</div>
+      `;
+      tooltip.style.display = 'block';
+      tooltip.style.left = (event.pageX + 10) + 'px';
+      tooltip.style.top = (event.pageY + 10) + 'px';
+    }
+
+    function hideCourseTooltip() {
+      const tooltip = document.getElementById('course-tooltip');
+      if (tooltip) tooltip.style.display = 'none';
+    }
+
+    function openAddEventModalForDate(dateStr) {
+      openAddEventModal();
+      document.getElementById('event-date').value = dateStr;
+    }
+
+    function showTaskEventInfo(itemId, type) {
+      const allItems = [...calendarEvents, ...calendarTasks];
+      const item = allItems.find(i => i.id === itemId);
+      if (!item) return;
+
+      const typeName = type === 'task' ? 'Tarefa' : 'Evento';
+      
+      // Criar modal de informações com opção de excluir
+      const modalHTML = `
+        <div class="fixed inset-0 z-[1300] flex items-center justify-center p-4">
+          <div class="modal-overlay absolute inset-0 bg-black/50" onclick="closeTaskEventInfoModal()"></div>
+          <div class="modal-content w-full max-w-md card-elegant md:rounded-2xl shadow-2xl relative z-10">
+            <div class="flex items-center justify-between p-6 border-b border-border/30">
+              <h2 class="text-xl font-semibold text-foreground">${typeName}</h2>
+              <button onclick="closeTaskEventInfoModal()" class="p-2 hover:bg-secondary/50 rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div class="p-6 space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-muted-foreground mb-2">Título</label>
+                <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground">${item.title}</div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-muted-foreground mb-2">Data</label>
+                <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground">${formatDate(item.date)}</div>
+              </div>
+              ${item.description ? `
+              <div>
+                <label class="block text-sm font-medium text-muted-foreground mb-2">Descrição</label>
+                <div class="px-3 py-2 bg-secondary/30 border border-border/50 rounded-lg text-foreground">${item.description}</div>
+              </div>
+              ` : ''}
+              <div class="flex justify-end gap-3 pt-4 border-t border-border/30">
+                <button onclick="closeTaskEventInfoModal()" class="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-secondary/50 transition-colors">
+                  Fechar
+                </button>
+                ${type === 'event' ? `
+                <button onclick="deleteEvent('${itemId}')" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors">
+                  Excluir Evento
+                </button>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Remover modal anterior se existir
+      const existingModal = document.getElementById('task-event-info-modal');
+      if (existingModal) existingModal.remove();
+      
+      // Criar e adicionar novo modal
+      const modalDiv = document.createElement('div');
+      modalDiv.id = 'task-event-info-modal';
+      modalDiv.innerHTML = modalHTML;
+      document.body.appendChild(modalDiv);
+      document.body.classList.add('modal-open');
+    }
+
+    function closeTaskEventInfoModal() {
+      const modal = document.getElementById('task-event-info-modal');
+      if (modal) {
+        modal.remove();
+        document.body.classList.remove('modal-open');
+      }
+    }
+
+    function deleteEvent(eventId) {
+      if (!confirm('Tem certeza que deseja excluir este evento?')) return;
+      
+      const eventIndex = calendarEvents.findIndex(e => e.id === eventId);
+      if (eventIndex === -1) return;
+      
+      calendarEvents.splice(eventIndex, 1);
+      localStorage.setItem('calendar_events', JSON.stringify(calendarEvents));
+      
+      renderCalendar();
+      checkNotifications();
+      closeTaskEventInfoModal();
+      alert('Evento excluído com sucesso!');
+    }
+
+    // Função para obter feriados e datas comemorativas
+    function getHoliday(dateStr) {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      
+      // Feriados fixos
+      const fixedHolidays = {
+        '01-01': 'Ano Novo',
+        '04-21': 'Tiradentes',
+        '05-01': 'Dia do Trabalhador',
+        '09-07': 'Independência',
+        '10-12': 'Nossa Senhora Aparecida',
+        '11-02': 'Finados',
+        '11-15': 'Proclamação da República',
+        '11-20': 'Consciência Negra',
+        '12-25': 'Natal'
+      };
+      
+      const monthDay = `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      if (fixedHolidays[monthDay]) {
+        return fixedHolidays[monthDay];
+      }
+      
+      // Páscoa (calculada)
+      const easter = calculateEaster(year);
+      const easterDate = new Date(year, easter.month - 1, easter.day);
+      if (date.getTime() === easterDate.getTime()) {
+        return 'Páscoa';
+      }
+      
+      // Carnaval (47 dias antes da Páscoa)
+      const carnival = new Date(easterDate);
+      carnival.setDate(carnival.getDate() - 47);
+      if (date.getTime() === carnival.getTime()) {
+        return 'Carnaval';
+      }
+      
+      // Sexta-feira Santa (2 dias antes da Páscoa)
+      const goodFriday = new Date(easterDate);
+      goodFriday.setDate(goodFriday.getDate() - 2);
+      if (date.getTime() === goodFriday.getTime()) {
+        return 'Sexta-feira Santa';
+      }
+      
+      // Corpus Christi (60 dias após a Páscoa)
+      const corpusChristi = new Date(easterDate);
+      corpusChristi.setDate(corpusChristi.getDate() + 60);
+      if (date.getTime() === corpusChristi.getTime()) {
+        return 'Corpus Christi';
+      }
+      
+      return null;
+    }
+
+    function calculateEaster(year) {
+      const a = year % 19;
+      const b = Math.floor(year / 100);
+      const c = year % 100;
+      const d = Math.floor(b / 4);
+      const e = b % 4;
+      const f = Math.floor((b + 8) / 25);
+      const g = Math.floor((b - f + 1) / 3);
+      const h = (19 * a + b - d - g + 15) % 30;
+      const i = Math.floor(c / 4);
+      const k = c % 4;
+      const l = (32 + 2 * e + 2 * i - h - k) % 7;
+      const m = Math.floor((a + 11 * h + 22 * l) / 451);
+      const month = Math.floor((h + l - 7 * m + 114) / 31);
+      const day = ((h + l - 7 * m + 114) % 31) + 1;
+      return { month, day };
+    }
+
+    function renderTasksList() {
+      const container = document.getElementById('tasks-list');
+      if (!container) return;
+
+      if (calendarTasks.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 text-muted-foreground">
+            <div class="w-16 h-16 bg-secondary/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            </div>
+            <p class="font-medium">Nenhuma tarefa cadastrada</p>
+            <p class="text-sm mt-1">Adicione uma nova tarefa para começar</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Ordenar tarefas: não realizadas primeiro, depois por data
+      const sortedTasks = [...calendarTasks].sort((a, b) => {
+        if (a.completed && !b.completed) return 1;
+        if (!a.completed && b.completed) return -1;
+        return new Date(a.date) - new Date(b.date);
+      });
+
+      container.innerHTML = sortedTasks.map(task => {
+        const taskDate = new Date(task.date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        taskDate.setHours(0, 0, 0, 0);
+        const isOverdue = !task.completed && taskDate < today;
+        const isToday = taskDate.getTime() === today.getTime();
+        const daysUntil = Math.ceil((taskDate - today) / (1000 * 60 * 60 * 24));
+
+        return `
+          <div class="p-5 border-2 ${task.completed ? 'border-[rgba(52,199,89,0.3)] bg-[rgba(52,199,89,0.05)] opacity-75' : isOverdue ? 'border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10' : 'border-border/30 bg-card'} rounded-[16px] hover:shadow-lg transition-all duration-200 ${task.completed ? '' : 'hover:border-[#007AFF]/50'}" onclick="showTaskEventInfo('${task.id}', 'task')">
+            <div class="flex items-start gap-4">
+              <button onclick="event.stopPropagation(); toggleTaskComplete('${task.id}')" class="flex-shrink-0 w-6 h-6 rounded-full border-2 ${task.completed ? 'bg-[#34C759] border-[#34C759]' : 'border-[#8e8e93] hover:border-[#34C759]'} flex items-center justify-center transition-all mt-0.5">
+                ${task.completed ? `
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                ` : ''}
+              </button>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between gap-3 mb-2">
+                  <h4 class="font-semibold text-foreground ${task.completed ? 'line-through opacity-60' : ''} text-lg">${task.title}</h4>
+                  <div class="flex items-center gap-2 flex-shrink-0">
+                    ${isOverdue ? '<span class="px-2.5 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-semibold rounded-full">Atrasada</span>' : ''}
+                    ${isToday && !task.completed ? '<span class="px-2.5 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-xs font-semibold rounded-full">Hoje</span>' : ''}
+                    ${!isOverdue && !isToday && daysUntil > 0 && daysUntil <= 3 && !task.completed ? `<span class="px-2.5 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 text-xs font-semibold rounded-full">Em ${daysUntil} dia(s)</span>` : ''}
+                    <button onclick="event.stopPropagation(); deleteTask('${task.id}')" class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Excluir tarefa">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="flex items-center gap-4 text-sm text-muted-foreground mb-2">
+                  <div class="flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span class="font-medium">${formatDate(task.date)}</span>
+                  </div>
+                  ${task.createdAt ? `
+                  <div class="flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Criada em ${new Date(task.createdAt).toLocaleDateString('pt-BR')}</span>
+                  </div>
+                  ` : ''}
+                </div>
+                ${task.description ? `
+                <p class="text-sm text-foreground/80 mt-2 leading-relaxed">${task.description}</p>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleTaskComplete(taskId) {
+      const taskIndex = calendarTasks.findIndex(t => t.id === taskId);
+      if (taskIndex === -1) return;
+
+      calendarTasks[taskIndex].completed = !calendarTasks[taskIndex].completed;
+      if (calendarTasks[taskIndex].completed) {
+        calendarTasks[taskIndex].completedAt = new Date().toISOString();
+      } else {
+        delete calendarTasks[taskIndex].completedAt;
+      }
+
+      localStorage.setItem('calendar_tasks', JSON.stringify(calendarTasks));
+      renderTasksList();
+      renderCalendar();
+      checkNotifications();
+    }
+
+    // Sistema de Notificações
+    function checkNotifications() {
+      notifications = [];
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      courses.filter(c => c.status === 'Pendente' && c.dataInicio).forEach(course => {
+        const inicio = new Date(course.dataInicio);
+        inicio.setHours(0, 0, 0, 0);
+        const diffDays = Math.ceil((inicio - today) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays <= 1 && diffDays >= 0) {
+          notifications.push({
+            id: `notif-${course.id}-inicio`,
+            type: 'course-start',
+            courseId: course.id,
+            courseIdCurso: course.idCurso || '-',
+            courseName: course.tipologia,
+            courseDate: course.dataInicio,
+            message: `Curso próximo ou no dia de início`,
+            action: 'update-status',
+            targetStatus: 'Em andamento',
+            priority: diffDays === 0 ? 'high' : 'medium'
+          });
+        }
+      });
+
+      courses.filter(c => c.status === 'Em andamento' && c.dataFim).forEach(course => {
+        const fim = new Date(course.dataFim);
+        fim.setHours(0, 0, 0, 0);
+        const diffDays = Math.ceil((fim - today) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays <= 1 && diffDays >= 0) {
+          notifications.push({
+            id: `notif-${course.id}-fim`,
+            type: 'course-end',
+            courseId: course.id,
+            courseIdCurso: course.idCurso || '-',
+            courseName: course.tipologia,
+            courseDate: course.dataFim,
+            message: `Curso próximo ou no dia de término`,
+            action: 'update-status',
+            targetStatus: 'Concluído',
+            priority: diffDays === 0 ? 'high' : 'medium'
+          });
+        }
+      });
+
+      const allItems = [...calendarEvents, ...calendarTasks];
+      allItems.forEach(item => {
+        const itemDate = new Date(item.date);
+        itemDate.setHours(0, 0, 0, 0);
+        const diffDays = Math.ceil((itemDate - today) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays < 0) {
+          notifications.push({
+            id: `notif-${item.id}-atrasado`,
+            type: 'overdue',
+            itemId: item.id,
+            itemTitle: item.title,
+            message: `${item.type === 'task' ? 'Tarefa' : 'Evento'} "${item.title}" está atrasado.`,
+            priority: 'high'
+          });
+        } else if (diffDays <= 2 && diffDays >= 0) {
+          notifications.push({
+            id: `notif-${item.id}-proximo`,
+            type: 'upcoming',
+            itemId: item.id,
+            itemTitle: item.title,
+            message: `${item.type === 'task' ? 'Tarefa' : 'Evento'} "${item.title}" está próximo (${diffDays === 0 ? 'hoje' : `em ${diffDays} dia(s)`}).`,
+            priority: diffDays === 0 ? 'high' : 'medium'
+          });
+        }
+      });
+
+      updateNotificationsBadge();
+      
+      // Enviar notificações push
+      sendPushNotifications();
+    }
+    
+    function requestNotificationPermission() {
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().then(permission => {
+          console.log('Permissão de notificação:', permission);
+        });
+      }
+    }
+    
+    function sendPushNotifications() {
+      if (!('Notification' in window) || Notification.permission !== 'granted') {
+        return;
+      }
+      
+      notifications.forEach(notif => {
+        const title = notif.type === 'course-start' ? 'Curso Iniciando' : 
+                     notif.type === 'course-end' ? 'Curso Finalizando' :
+                     notif.type === 'overdue' ? 'Tarefa/Evento Atrasado' :
+                     'Lembrete';
+        
+        const body = notif.type === 'course-start' || notif.type === 'course-end' ?
+          `${notif.courseIdCurso} - ${notif.courseName}` :
+          notif.message;
+        
+        const options = {
+          body: body,
+          icon: '/icon-192.png',
+          badge: '/icon-192.png',
+          tag: notif.id,
+          requireInteraction: notif.priority === 'high',
+          vibrate: notif.priority === 'high' ? [200, 100, 200] : [200]
+        };
+        
+        // Verificar se já foi notificado hoje
+        const lastNotified = localStorage.getItem(`notif-${notif.id}`);
+        const today = new Date().toDateString();
+        
+        if (lastNotified !== today) {
+          new Notification(title, options);
+          localStorage.setItem(`notif-${notif.id}`, today);
+        }
+      });
+    }
+
+    function updateNotificationsBadge() {
+      const badge = document.getElementById('notifications-badge');
+      if (badge) {
+        if (notifications.length > 0) {
+          badge.textContent = notifications.length > 99 ? '99+' : notifications.length;
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
+    }
+
+    function openNotificationsModal() {
+      checkNotifications();
+      document.getElementById('notifications-modal').classList.remove('hidden');
+      document.body.classList.add('modal-open');
+      switchNotificationTab('courses'); // Resetar para aba de cursos
+      renderNotifications();
+    }
+
+    function closeNotificationsModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('notifications-modal').classList.add('hidden');
+      document.body.classList.remove('modal-open');
+    }
+
+    let currentNotificationTab = 'courses';
+
+    function switchNotificationTab(tab) {
+      currentNotificationTab = tab;
+      
+      // Atualizar botões das abas
+      document.getElementById('notif-tab-courses').classList.remove('text-foreground', 'border-[#007AFF]');
+      document.getElementById('notif-tab-courses').classList.add('text-muted-foreground', 'border-transparent');
+      document.getElementById('notif-tab-tasks').classList.remove('text-foreground', 'border-[#007AFF]');
+      document.getElementById('notif-tab-tasks').classList.add('text-muted-foreground', 'border-transparent');
+      
+      // Esconder todas as listas
+      document.getElementById('notifications-list-courses').classList.add('hidden');
+      document.getElementById('notifications-list-tasks').classList.add('hidden');
+      
+      // Mostrar a aba selecionada
+      if (tab === 'courses') {
+        document.getElementById('notif-tab-courses').classList.remove('text-muted-foreground', 'border-transparent');
+        document.getElementById('notif-tab-courses').classList.add('text-foreground', 'border-[#007AFF]');
+        document.getElementById('notifications-list-courses').classList.remove('hidden');
+      } else {
+        document.getElementById('notif-tab-tasks').classList.remove('text-muted-foreground', 'border-transparent');
+        document.getElementById('notif-tab-tasks').classList.add('text-foreground', 'border-[#007AFF]');
+        document.getElementById('notifications-list-tasks').classList.remove('hidden');
+      }
+      
+      renderNotifications();
+    }
+
+    function renderNotifications() {
+      const coursesContainer = document.getElementById('notifications-list-courses');
+      const tasksContainer = document.getElementById('notifications-list-tasks');
+      
+      if (!coursesContainer || !tasksContainer) return;
+
+      // Separar notificações por tipo
+      const courseNotifications = notifications.filter(n => n.type === 'course-start' || n.type === 'course-end');
+      const taskNotifications = notifications.filter(n => n.type === 'overdue' || n.type === 'upcoming');
+
+      // Renderizar notificações de cursos
+      if (courseNotifications.length === 0) {
+        coursesContainer.innerHTML = `
+          <div class="text-center py-8 text-muted-foreground">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p>Nenhuma notificação de cursos no momento</p>
+          </div>
+        `;
+      } else {
+        coursesContainer.innerHTML = courseNotifications.map(notif => {
+          const priorityColor = {
+            'high': 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800',
+            'medium': 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800',
+            'low': 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+          }[notif.priority] || 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800';
+
+          const dateStr = notif.courseDate ? formatDate(notif.courseDate) : '-';
+          return `
+            <div class="p-4 rounded-lg border ${priorityColor} relative">
+              <button onclick="deleteNotification('${notif.id}')" class="absolute top-2 right-2 p-1 text-muted-foreground hover:text-red-500 transition-colors" title="Excluir notificação">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <div class="mb-3 pr-6">
+                <p class="text-xs text-muted-foreground mb-1 font-medium">${notif.type === 'course-start' ? 'Início de Curso' : 'Término de Curso'}</p>
+                <p class="text-sm font-semibold text-foreground mb-1">ID: <span class="font-mono">${notif.courseIdCurso}</span></p>
+                <p class="text-sm text-foreground mb-1">${notif.courseName}</p>
+                <p class="text-xs text-muted-foreground">Data: ${dateStr}</p>
+              </div>
+              <p class="text-sm text-foreground mb-3">${notif.message}. Atualize o status para "${notif.targetStatus}".</p>
+              ${notif.action === 'update-status' ? `
+                <button onclick="openQuickUpdateModal('${notif.courseId}', '${notif.targetStatus}')" class="w-full px-3 py-2 bg-[#007AFF] hover:bg-[#0051D5] text-white rounded-[8px] text-sm font-medium transition-colors">
+                  Atualizar para ${notif.targetStatus}
+                </button>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Renderizar notificações de tarefas/eventos
+      if (taskNotifications.length === 0) {
+        tasksContainer.innerHTML = `
+          <div class="text-center py-8 text-muted-foreground">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p>Nenhuma notificação de tarefas/eventos no momento</p>
+          </div>
+        `;
+      } else {
+        tasksContainer.innerHTML = taskNotifications.map(notif => {
+          const priorityColor = {
+            'high': 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800',
+            'medium': 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800',
+            'low': 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+          }[notif.priority] || 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800';
+
+          // Encontrar a tarefa/evento correspondente
+          const allItems = [...calendarEvents, ...calendarTasks];
+          const item = allItems.find(i => i.id === notif.itemId);
+          const isTask = item && item.type === 'task';
+          const isCompleted = item && item.completed;
+
+          return `
+            <div class="p-4 rounded-lg border ${priorityColor} relative">
+              <button onclick="deleteNotification('${notif.id}')" class="absolute top-2 right-2 p-1 text-muted-foreground hover:text-red-500 transition-colors" title="Excluir notificação">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <div class="mb-3 pr-6">
+                <p class="text-xs text-muted-foreground mb-1 font-medium">${isTask ? 'Tarefa' : 'Evento'}</p>
+                <p class="text-sm font-semibold text-foreground mb-1">${notif.itemTitle}</p>
+                ${item && item.date ? `<p class="text-xs text-muted-foreground">Data: ${formatDate(item.date)}</p>` : ''}
+                ${isCompleted ? '<p class="text-xs text-[#34C759] mt-1">✓ Concluída</p>' : ''}
+              </div>
+              <p class="text-sm text-foreground mb-3">${notif.message}</p>
+              ${isTask && !isCompleted ? `
+                <button onclick="markTaskAsCompletedFromNotification('${notif.itemId}', '${notif.id}')" class="w-full px-3 py-2 bg-[#34C759] hover:bg-[#30D158] text-white rounded-[8px] text-sm font-medium transition-colors">
+                  Marcar como Realizada
+                </button>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function deleteNotification(notificationId) {
+      const index = notifications.findIndex(n => n.id === notificationId);
+      if (index === -1) return;
+      
+      notifications.splice(index, 1);
+      renderNotifications();
+      updateNotificationsBadge();
+    }
+
+    function deleteAllNotifications() {
+      if (!confirm('Tem certeza que deseja excluir todas as notificações?')) return;
+      
+      notifications = [];
+      renderNotifications();
+      updateNotificationsBadge();
+      alert('Todas as notificações foram excluídas!');
+    }
+
+    function markTaskAsCompletedFromNotification(taskId, notificationId) {
+      const taskIndex = calendarTasks.findIndex(t => t.id === taskId);
+      if (taskIndex === -1) return;
+      
+      calendarTasks[taskIndex].completed = true;
+      calendarTasks[taskIndex].completedAt = new Date().toISOString();
+      localStorage.setItem('calendar_tasks', JSON.stringify(calendarTasks));
+      
+      // Remover a notificação
+      const notifIndex = notifications.findIndex(n => n.id === notificationId);
+      if (notifIndex !== -1) {
+        notifications.splice(notifIndex, 1);
+      }
+      
+      renderCalendar();
+      renderTasksList();
+      renderNotifications();
+      checkNotifications();
+      updateNotificationsBadge();
+      
+      alert('Tarefa marcada como realizada!');
+    }
+
+    function openQuickUpdateModal(courseId, newStatus) {
+      const course = courses.find(c => c.id === courseId);
+      if (!course) return;
+
+      document.getElementById('quick-update-course-id').textContent = course.idCurso || '-';
+      document.getElementById('quick-update-course-name').textContent = course.tipologia;
+      document.getElementById('quick-update-new-status').textContent = newStatus;
+      document.getElementById('quick-update-course-id-hidden').value = courseId;
+      document.getElementById('quick-update-status-hidden').value = newStatus;
+      document.getElementById('quick-update-concludentes').value = course.concludentes !== null ? course.concludentes : '';
+      
+      // Mostrar campo de concludentes apenas se for para "Concluído"
+      const concludentesDiv = document.getElementById('quick-update-concludentes-div');
+      if (concludentesDiv) {
+        if (newStatus === 'Concluído') {
+          concludentesDiv.classList.remove('hidden');
+        } else {
+          concludentesDiv.classList.add('hidden');
+        }
+      }
+      
+      document.getElementById('quick-update-modal').classList.remove('hidden');
+      document.body.classList.add('modal-open');
+    }
+
+    function closeQuickUpdateModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('quick-update-modal').classList.add('hidden');
+      document.body.classList.remove('modal-open');
+    }
+
+    function confirmQuickUpdate() {
+      const courseId = document.getElementById('quick-update-course-id-hidden').value;
+      const newStatus = document.getElementById('quick-update-status-hidden').value;
+      const concludentesInput = document.getElementById('quick-update-concludentes');
+      const concludentes = concludentesInput.value ? parseInt(concludentesInput.value) : null;
+
+      const courseIndex = courses.findIndex(c => c.id === courseId);
+      if (courseIndex === -1) return;
+
+      // Validação: se for concluído, concludentes é obrigatório
+      if (newStatus === 'Concluído' && (!concludentesInput.value || concludentes === null)) {
+        alert('Por favor, informe a quantidade de concludentes ao concluir um curso.');
+        concludentesInput.focus();
+        return;
+      }
+
+      courses[courseIndex].status = newStatus;
+      if (newStatus === 'Concluído' && concludentes !== null) {
+        courses[courseIndex].concludentes = concludentes;
+      }
+
+      filteredCourses = [...courses];
+      saveToStorage();
+      renderAll();
+      renderCronograma();
+      checkNotifications();
+      renderNotifications();
+      closeQuickUpdateModal();
+      alert('Status atualizado com sucesso!');
+    }
+
+    // Gerar Relatório PNG
+    function generateReport() {
+      const total = courses.length;
+      const completed = courses.filter(c => normalizeStatus(c.status) === 'concluído').length;
+      const pending = courses.filter(c => normalizeStatus(c.status) === 'pendente').length;
+      const inProgress = courses.filter(c => {
+        const normalized = normalizeStatus(c.status);
+        return normalized === 'em andamento' || normalized === 'em andamento.';
+      }).length;
+      const totalConcludentes = courses.reduce((sum, c) => sum + (c.concludentes || 0), 0);
+
+      const pctCompleted = total > 0 ? (completed / total) * 100 : 0;
+      const pctInProgress = total > 0 ? (inProgress / total) * 100 : 0;
+      const pctPending = total > 0 ? (pending / total) * 100 : 0;
+
+      // Criar canvas para o relatório
+      const canvas = document.createElement('canvas');
+      canvas.width = 1200;
+      canvas.height = 800;
+      const ctx = canvas.getContext('2d');
+
+      // Fundo
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Título
+      ctx.fillStyle = '#1d1d1f';
+      ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Ceará Sem Fome + Qualificação e Renda', canvas.width / 2, 60);
+
+      // Data
+      ctx.font = '16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillStyle = '#8e8e93';
+      ctx.fillText(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, canvas.width / 2, 90);
+
+      // Estatísticas
+      let yPos = 150;
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#1d1d1f';
+      ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText('Estatísticas Gerais', 80, yPos);
+      yPos += 40;
+
+      ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillStyle = '#1d1d1f';
+      ctx.fillText(`Total de Cursos: ${total}`, 80, yPos);
+      yPos += 35;
+      ctx.fillText(`Concluídos: ${completed}`, 80, yPos);
+      yPos += 35;
+      ctx.fillText(`Em Andamento: ${inProgress}`, 80, yPos);
+      yPos += 35;
+      ctx.fillText(`Pendentes: ${pending}`, 80, yPos);
+      yPos += 35;
+      ctx.fillText(`Total de Concludentes: ${totalConcludentes}`, 80, yPos);
+      yPos += 50;
+
+      // Gráfico Pizza
+      const centerX = canvas.width / 2;
+      const centerY = 500;
+      const radius = 120;
+
+      let currentAngle = -Math.PI / 2;
+
+      // Desenhar gráfico pizza
+      if (completed > 0) {
+        const sliceAngle = (pctCompleted / 100) * 2 * Math.PI;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+        ctx.closePath();
+        ctx.fillStyle = '#34C759';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        currentAngle += sliceAngle;
+      }
+
+      if (inProgress > 0) {
+        const sliceAngle = (pctInProgress / 100) * 2 * Math.PI;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+        ctx.closePath();
+        ctx.fillStyle = '#007AFF';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        currentAngle += sliceAngle;
+      }
+
+      if (pending > 0) {
+        const sliceAngle = (pctPending / 100) * 2 * Math.PI;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+        ctx.closePath();
+        ctx.fillStyle = '#FF9500';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      }
+
+      // Legenda
+      yPos = 650;
+      const legendX = 80;
+      const legendY = yPos;
+      const legendSpacing = 200;
+
+      // Concluídos
+      ctx.fillStyle = '#34C759';
+      ctx.fillRect(legendX, legendY, 20, 20);
+      ctx.fillStyle = '#1d1d1f';
+      ctx.font = '16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText(`Concluídos: ${completed} (${pctCompleted.toFixed(1)}%)`, legendX + 30, legendY + 15);
+
+      // Em Andamento
+      ctx.fillStyle = '#007AFF';
+      ctx.fillRect(legendX + legendSpacing, legendY, 20, 20);
+      ctx.fillStyle = '#1d1d1f';
+      ctx.fillText(`Em Andamento: ${inProgress} (${pctInProgress.toFixed(1)}%)`, legendX + legendSpacing + 30, legendY + 15);
+
+      // Pendentes
+      ctx.fillStyle = '#FF9500';
+      ctx.fillRect(legendX + legendSpacing * 2, legendY, 20, 20);
+      ctx.fillStyle = '#1d1d1f';
+      ctx.fillText(`Pendentes: ${pending} (${pctPending.toFixed(1)}%)`, legendX + legendSpacing * 2 + 30, legendY + 15);
+
+      // Converter para PNG e baixar
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const dateStr = new Date().toISOString().split('T')[0];
+        a.download = `Relatorio-Ceara-Sem-Fome-${dateStr}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 'image/png');
+    }
+
+    // Inicializar notificações e calendário
+    document.addEventListener('DOMContentLoaded', () => {
+      initCalendar();
+      setTimeout(() => {
+        checkNotifications();
+        setInterval(checkNotifications, 3600000);
+      }, 1000);
+    });
   </script>
 </body>
 </html>
