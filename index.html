@@ -10,7 +10,16 @@
   <meta name="apple-mobile-web-app-title" content="IAC">
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="manifest" href="/manifest.json">
+  
+  <!-- Favicon e Ícones -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
   <link rel="apple-touch-icon" href="/icon-192.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png">
+  <link rel="shortcut icon" href="/icon-192.png">
+  
   <title>IAC - Instituto de Arte e Cidadania do Ceará</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -274,6 +283,21 @@
       -webkit-backdrop-filter: saturate(180%) blur(20px);
       border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Botão Menu Mobile - Ajustes de acessibilidade */
+    @media (max-width: 768px) {
+      .header-fixed button[onclick*="toggleMenuDrawer"] {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1001;
+        position: relative;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+      }
     }
     
     body.modal-open .header-fixed {
@@ -655,8 +679,8 @@
       <div class="container mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
         <div class="flex items-center gap-4">
           <!-- Botão Hambúrguer (Mobile) -->
-          <button onclick="toggleMenuDrawer()" class="md:hidden p-2 hover:bg-[rgba(0,0,0,0.05)] rounded-[12px] transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-[#1d1d1f] dark:text-[#f5f5f7]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <button onclick="toggleMenuDrawer()" class="md:hidden p-2.5 hover:bg-[rgba(0,0,0,0.05)] dark:hover:bg-[rgba(255,255,255,0.1)] rounded-[12px] transition-colors relative z-50" style="touch-action: manipulation; -webkit-tap-highlight-color: transparent;">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-[#1d1d1f] dark:text-[#f5f5f7]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
@@ -699,6 +723,18 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             Configurações
+          </button>
+          <button id="install-pwa-btn-header" onclick="installPWA()" class="hidden flex items-center gap-2 px-4 py-2.5 bg-[#34C759] hover:bg-[#30D158] text-white rounded-[12px] transition-colors font-medium shadow-sm" style="box-shadow: 0 2px 8px rgba(52, 199, 89, 0.25);">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Instalar App
+          </button>
+          <button onclick="showInstallInstructions()" class="flex items-center gap-2 px-4 py-2.5 text-[#007AFF] hover:bg-[rgba(0,122,255,0.1)] rounded-[12px] transition-colors font-medium" title="Instalar aplicativo desktop">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span class="hidden lg:inline">Instalar</span>
           </button>
           <button onclick="toggleTheme()" class="flex items-center gap-2 px-3 py-2.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:bg-[rgba(0,0,0,0.05)] dark:hover:bg-[rgba(255,255,255,0.1)] rounded-[12px] transition-colors" title="Alternar tema">
             <svg id="header-theme-icon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -936,10 +972,43 @@
           </div>
         </div>
         
+        <!-- Instalar Aplicativo Desktop -->
+        <div class="border border-primary/30 rounded-lg p-4 bg-primary/5 mb-6">
+          <h3 class="text-lg font-medium text-foreground mb-2">Aplicativo Desktop</h3>
+          <p class="text-sm text-muted-foreground mb-4">Instale o aplicativo para acesso rápido, modo offline e notificações.</p>
+          
+          <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-lg mb-4">
+            <div>
+              <p class="font-medium text-foreground">Instalar Aplicativo</p>
+              <p class="text-sm text-muted-foreground">Instale o IAC como aplicativo desktop para acesso rápido.</p>
+            </div>
+            <button onclick="showInstallInstructions()" class="flex items-center gap-2 bg-[#34C759] hover:bg-[#30D158] text-white px-4 py-2 rounded-lg transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Ver Instruções
+            </button>
+          </div>
+          
+          <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <h4 class="font-semibold text-foreground mb-2 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-[#007AFF]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Instruções Rápidas
+            </h4>
+            <div class="text-sm text-foreground space-y-2">
+              <p><strong>Chrome/Edge:</strong> Clique no ícone de instalação (⊕) na barra de endereços ou no menu (⋮) → "Instalar IAC"</p>
+              <p><strong>Firefox:</strong> Menu (☰) → "Instalar" (se disponível)</p>
+              <p><strong>Safari (macOS):</strong> Compartilhar → "Adicionar à Tela de Início"</p>
+            </div>
+          </div>
+        </div>
+        
         <!-- Relatórios -->
         <div class="border border-primary/30 rounded-lg p-4 bg-primary/5 mb-6">
           <h3 class="text-lg font-medium text-foreground mb-2">Relatórios</h3>
-          <p class="text-sm text-muted-foreground mb-4">Gere relatórios em PDF com estatísticas e gráficos.</p>
+          <p class="text-sm text-muted-foreground mb-4">Gere relatórios em PNG com estatísticas e gráficos.</p>
           
           <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
             <div>
@@ -2225,8 +2294,150 @@
         
         // Solicitar permissão de notificações
         requestNotificationPermission();
+        
+        // Configurar prompt de instalação PWA
+        setupInstallPrompt();
       }, 800); // Simulate loading time
     });
+    
+    let deferredPrompt;
+    
+    function setupInstallPrompt() {
+      // Detectar evento de instalação PWA
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        showInstallButton();
+      });
+      
+      // Detectar se já está instalado
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+        console.log('Aplicativo já instalado');
+        hideInstallButton();
+      }
+    }
+    
+    function showInstallButton() {
+      // Mostrar botão de instalação no header (desktop)
+      const installBtn = document.getElementById('install-pwa-btn-header');
+      if (installBtn) {
+        installBtn.classList.remove('hidden');
+      }
+    }
+    
+    function hideInstallButton() {
+      // Esconder botão de instalação no header
+      const installBtn = document.getElementById('install-pwa-btn-header');
+      if (installBtn) {
+        installBtn.classList.add('hidden');
+      }
+    }
+    
+    async function installPWA() {
+      if (!deferredPrompt) {
+        // Se não houver prompt, mostrar instruções
+        showInstallInstructions();
+        return;
+      }
+      
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        console.log('Usuário aceitou a instalação');
+        hideInstallButton();
+      } else {
+        console.log('Usuário rejeitou a instalação');
+      }
+      
+      deferredPrompt = null;
+    }
+    
+    function showInstallInstructions() {
+      const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+      const isEdge = /Edg/.test(navigator.userAgent);
+      const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+      
+      let instructions = '';
+      
+      if (isChrome || isEdge) {
+        instructions = `
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-foreground mb-2">Como instalar no Chrome/Edge:</h3>
+            <ol class="list-decimal list-inside space-y-2 text-sm text-foreground">
+              <li>Clique no ícone de <strong>menu</strong> (três pontos) no canto superior direito</li>
+              <li>Procure por <strong>"Instalar IAC"</strong> ou <strong>"Instalar aplicativo"</strong></li>
+              <li>Clique em <strong>"Instalar"</strong></li>
+              <li>O aplicativo será instalado e aparecerá na sua área de trabalho</li>
+            </ol>
+            <p class="text-xs text-muted-foreground mt-4">💡 Dica: Você também pode clicar no ícone de instalação na barra de endereços (ao lado da URL)</p>
+          </div>
+        `;
+      } else if (isSafari) {
+        instructions = `
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-foreground mb-2">Como instalar no Safari (macOS):</h3>
+            <ol class="list-decimal list-inside space-y-2 text-sm text-foreground">
+              <li>Clique em <strong>"Compartilhar"</strong> na barra de ferramentas</li>
+              <li>Selecione <strong>"Adicionar à Tela de Início"</strong></li>
+              <li>Confirme a instalação</li>
+            </ol>
+          </div>
+        `;
+      } else {
+        instructions = `
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-foreground mb-2">Como instalar o aplicativo:</h3>
+            <div class="text-sm text-foreground space-y-2">
+              <p><strong>Chrome/Edge:</strong> Menu (⋮) → "Instalar IAC" ou ícone de instalação na barra de endereços</p>
+              <p><strong>Firefox:</strong> Menu (☰) → "Instalar" (se disponível)</p>
+              <p><strong>Safari (macOS):</strong> Compartilhar → "Adicionar à Tela de Início"</p>
+            </div>
+          </div>
+        `;
+      }
+      
+      const modalHTML = `
+        <div class="fixed inset-0 z-[1300] flex items-center justify-center p-4">
+          <div class="modal-overlay absolute inset-0 bg-black/50" onclick="closeInstallInstructions()"></div>
+          <div class="modal-content w-full max-w-md card-elegant md:rounded-2xl shadow-2xl relative z-10">
+            <div class="flex items-center justify-between p-6 border-b border-border/30">
+              <h2 class="text-xl font-semibold text-foreground">Instalar Aplicativo Desktop</h2>
+              <button onclick="closeInstallInstructions()" class="p-2 hover:bg-secondary/50 rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div class="p-6">
+              ${instructions}
+            </div>
+            <div class="flex justify-end gap-3 p-6 border-t border-border/30">
+              <button onclick="closeInstallInstructions()" class="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-secondary/50 transition-colors">
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      const existingModal = document.getElementById('install-instructions-modal');
+      if (existingModal) existingModal.remove();
+      
+      const modalDiv = document.createElement('div');
+      modalDiv.id = 'install-instructions-modal';
+      modalDiv.innerHTML = modalHTML;
+      document.body.appendChild(modalDiv);
+      document.body.classList.add('modal-open');
+    }
+    
+    function closeInstallInstructions() {
+      const modal = document.getElementById('install-instructions-modal');
+      if (modal) {
+        modal.remove();
+        document.body.classList.remove('modal-open');
+      }
+    }
 
     function switchTab(tab) {
       // Remove active de todas as tabs
