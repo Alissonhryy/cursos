@@ -4088,7 +4088,7 @@
         
         calendarHTML += `
           <div class="h-[110px] border-2 ${isToday ? 'border-[#007AFF] bg-gradient-to-br from-[rgba(0,122,255,0.15)] to-[rgba(0,122,255,0.05)] shadow-md' : hasContent ? 'border-border/40 bg-card/50' : 'border-border/20 bg-secondary/20'} rounded-[12px] p-2 overflow-hidden ${hasContent ? 'cursor-pointer' : ''} hover:border-[#007AFF]/50 hover:shadow-md transition-all duration-200" 
-               ${hasContent ? `onclick="if(event.target.tagName !== 'BUTTON' && event.target.closest('button') === null && event.target.closest('.group') === null && event.target.closest('[onclick*=\"openCronogramaCourseModal\"]') === null && event.target.closest('[onclick*=\"showTaskEventInfo\"]') === null) { openDayDetailsModal('${dateStr}'); }"` : ''}
+               ${hasContent ? `onclick="handleDayClick(event, '${dateStr}')"` : ''}
                ondblclick="openAddEventModalForDate('${dateStr}')">
             <div class="flex items-center justify-between mb-1">
               <div class="text-sm font-bold ${isToday ? 'text-[#007AFF]' : 'text-foreground'}">${day}</div>
@@ -4212,6 +4212,21 @@
         calendarCurrentYear++;
       }
       renderCalendar();
+    }
+
+    function handleDayClick(event, dateStr) {
+      // Não abrir modal se clicou em um botão, curso ou evento
+      const target = event.target;
+      if (target.tagName === 'BUTTON' || 
+          target.closest('button') !== null ||
+          target.closest('[onclick*="openCronogramaCourseModal"]') !== null ||
+          target.closest('[onclick*="showTaskEventInfo"]') !== null ||
+          target.closest('.group') !== null) {
+        return;
+      }
+      
+      // Abrir modal de detalhes do dia
+      openDayDetailsModal(dateStr);
     }
 
     function openDayDetailsModal(dateStr) {
