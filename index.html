@@ -9,16 +9,41 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="IAC">
   <meta name="mobile-web-app-capable" content="yes">
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="manifest.json">
   
   <!-- Favicon e Ícones -->
-  <link rel="icon" type="image/png" sizes="32x32" href="/icon-192.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
-  <link rel="apple-touch-icon" href="/icon-192.png">
-  <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
-  <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png">
-  <link rel="shortcut icon" href="/icon-192.png">
+  <!-- Favicon padrão - tenta primeiro sem extensão dupla, depois com -->
+  <link rel="icon" type="image/png" sizes="16x16" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  <!-- Fallback para arquivos com extensão dupla -->
+  <link rel="icon" type="image/png" href="icon-192.png.png">
+  <link rel="icon" type="image/png" href="icon-512.png.png">
+  <!-- Apple Touch Icons (iOS) - tamanho recomendado 180x180 -->
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="57x57" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
+  <!-- Fallback para arquivos com extensão dupla -->
+  <link rel="apple-touch-icon" href="icon-192.png.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png.png">
+  <!-- Shortcut icon -->
+  <link rel="shortcut icon" href="icon-192.png">
+  <link rel="shortcut icon" href="icon-192.png.png">
+  <!-- Microsoft Tiles -->
+  <meta name="msapplication-TileImage" content="icon-192.png">
+  <meta name="msapplication-TileColor" content="#007AFF">
   
   <title>IAC - Instituto de Arte e Cidadania do Ceará</title>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -42,12 +67,32 @@
     Promise.all([
       import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js'),
       import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js'),
-      import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js')
-    ]).then(([firebaseApp, firebaseAuth, firebaseDatabase]) => {
+      import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js'),
+      import('https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js').catch(() => null) // Functions opcional
+    ]).then(([firebaseApp, firebaseAuth, firebaseDatabase, firebaseFunctions]) => {
       // Initialize Firebase
       window.firebaseApp = firebaseApp.initializeApp(firebaseConfig);
       window.firebaseAuth = firebaseAuth.getAuth(window.firebaseApp);
       window.database = firebaseDatabase.getDatabase(window.firebaseApp);
+      
+      // Inicializar Functions se disponível
+      if (firebaseFunctions) {
+        try {
+          const functionsInstance = firebaseFunctions.getFunctions(window.firebaseApp);
+          // Salvar tanto a instância quanto o módulo para usar httpsCallable
+          window.firebaseFunctions = functionsInstance;
+          window.firebaseFunctionsModule = firebaseFunctions; // Salvar o módulo também
+          console.log('Firebase Functions inicializado');
+        } catch (error) {
+          console.warn('Firebase Functions não disponível:', error);
+          window.firebaseFunctions = null;
+          window.firebaseFunctionsModule = null;
+        }
+      } else {
+        window.firebaseFunctions = null;
+        window.firebaseFunctionsModule = null;
+      }
+      
       window.firebaseModules = {
         signInWithEmailAndPassword: firebaseAuth.signInWithEmailAndPassword,
         signOut: firebaseAuth.signOut,
@@ -283,10 +328,17 @@
       -webkit-backdrop-filter: saturate(180%) blur(20px);
       border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      /* Respeitar safe area do iPhone */
+      padding-top: env(safe-area-inset-top, 0);
     }
     
-    /* Botão Menu Mobile - Ajustes de acessibilidade */
+    /* Botão Menu Mobile - Ajustes de acessibilidade e safe area */
     @media (max-width: 768px) {
+      .header-fixed {
+        padding-top: max(env(safe-area-inset-top, 0), 8px);
+        padding-bottom: 8px;
+      }
+      
       .header-fixed button[onclick*="toggleMenuDrawer"] {
         min-width: 44px;
         min-height: 44px;
@@ -297,6 +349,11 @@
         position: relative;
         -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
+        margin-top: env(safe-area-inset-top, 0);
+      }
+      
+      .header-fixed .container {
+        padding-top: 0;
       }
     }
     
@@ -461,6 +518,7 @@
       left: -100%;
       width: 300px;
       height: 100vh;
+      height: 100dvh; /* Dynamic viewport height */
       z-index: 1100;
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: saturate(180%) blur(30px);
@@ -469,6 +527,20 @@
       transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       overflow-y: auto;
       box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+      /* Respeitar safe area do iPhone */
+      padding-top: env(safe-area-inset-top, 0);
+      padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+    
+    @media (max-width: 768px) {
+      .menu-drawer > div:first-child {
+        padding-top: max(env(safe-area-inset-top, 0), 16px);
+      }
+      
+      .menu-drawer button[onclick*="toggleMenuDrawer"] {
+        margin-top: env(safe-area-inset-top, 0);
+        padding-top: max(env(safe-area-inset-top, 0), 8px);
+      }
     }
     .menu-drawer.open {
       left: 0;
@@ -651,6 +723,12 @@
             </svg>
             Calendário
           </button>
+          <button onclick="window.open('https://alissonhryy.github.io/Almox/', '_blank'); toggleMenuDrawer();" id="tab-estoque-mobile" class="tab-btn admin-only w-full text-left flex items-center gap-3 px-4 py-3 border-l-4 border-transparent hover:bg-secondary/50 rounded-lg transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            Estoque
+          </button>
           <button onclick="switchTab('settings'); toggleMenuDrawer();" id="tab-settings-mobile" class="tab-btn admin-only w-full text-left flex items-center gap-3 px-4 py-3 border-l-4 border-transparent hover:bg-secondary/50 rounded-lg transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31 .826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -717,24 +795,18 @@
             </svg>
             Calendário
           </button>
+          <button onclick="window.open('https://alissonhryy.github.io/Almox/', '_blank')" id="tab-estoque" class="tab-btn admin-only flex items-center gap-2 px-4 py-2.5 text-[#8e8e93] hover:text-[#007AFF] transition-colors font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            Estoque
+          </button>
           <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn admin-only flex items-center gap-2 px-4 py-2.5 text-[#8e8e93] hover:text-[#007AFF] transition-colors font-medium">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31 .826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             Configurações
-          </button>
-          <button id="install-pwa-btn-header" onclick="installPWA()" class="hidden flex items-center gap-2 px-4 py-2.5 bg-[#34C759] hover:bg-[#30D158] text-white rounded-[12px] transition-colors font-medium shadow-sm" style="box-shadow: 0 2px 8px rgba(52, 199, 89, 0.25);">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Instalar App
-          </button>
-          <button onclick="showInstallInstructions()" class="flex items-center gap-2 px-4 py-2.5 text-[#007AFF] hover:bg-[rgba(0,122,255,0.1)] rounded-[12px] transition-colors font-medium" title="Instalar aplicativo desktop">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <span class="hidden lg:inline">Instalar</span>
           </button>
           <button onclick="toggleTheme()" class="flex items-center gap-2 px-3 py-2.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:bg-[rgba(0,0,0,0.05)] dark:hover:bg-[rgba(255,255,255,0.1)] rounded-[12px] transition-colors" title="Alternar tema">
             <svg id="header-theme-icon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -897,180 +969,306 @@
 
     <!-- Settings Tab Content -->
     <main id="content-settings" class="container mx-auto px-2 md:px-4 py-6 space-y-6 hidden">
-      <div class="bg-card border border-border rounded-lg p-6">
-        <h2 class="text-xl font-semibold text-foreground mb-6">Configurações</h2>
+      <!-- Header -->
+      <div class="mb-6">
+        <h2 class="text-3xl font-bold text-foreground mb-2" style="letter-spacing: -0.02em;">Configurações</h2>
+        <p class="text-muted-foreground">Gerencie todas as configurações do sistema</p>
+      </div>
+
+      <!-- Grid de Configurações -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        <!-- Modo Escuro/Claro -->
-        <div class="border border-primary/30 rounded-lg p-4 bg-primary/5 mb-6">
-          <h3 class="text-lg font-medium text-foreground mb-2">Aparência</h3>
-          <p class="text-sm text-muted-foreground mb-4">Escolha entre modo claro ou escuro.</p>
+        <!-- Coluna Esquerda -->
+        <div class="space-y-6">
           
-          <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
-            <div>
-              <p class="font-medium text-foreground">Modo Escuro</p>
-              <p class="text-sm text-muted-foreground">Alterne entre tema claro e escuro.</p>
-            </div>
-            <button id="theme-toggle" onclick="toggleTheme()" class="flex items-center gap-2 bg-[#007AFF] hover:bg-[#0051D5] text-white px-4 py-2 rounded-lg transition-colors">
-              <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-              <span id="theme-text">Modo Escuro</span>
-            </button>
-          </div>
-        </div>
-        
-        <!-- Importar Planilha -->
-        <div class="border border-primary/30 rounded-lg p-4 bg-primary/5 mb-6">
-          <h3 class="text-lg font-medium text-foreground mb-2">Importação de Dados</h3>
-          <p class="text-sm text-muted-foreground mb-4">Importe cursos de uma planilha Excel ou CSV.</p>
-          
-          <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
-            <div>
-              <p class="font-medium text-foreground">Importar Planilha</p>
-              <p class="text-sm text-muted-foreground">Importa cursos de arquivos Excel (.xlsx, .xls) ou CSV.</p>
-            </div>
-            <button onclick="openImportModal()" class="flex items-center gap-2 bg-[#007AFF] hover:bg-[#0051D5] text-white px-4 py-2 rounded-lg transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-              Importar
-            </button>
-          </div>
-        </div>
-        
-        <!-- Backup e Restauração -->
-        <div class="border border-primary/30 rounded-lg p-4 bg-primary/5 mb-6">
-          <h3 class="text-lg font-medium text-foreground mb-2">Backup e Restauração</h3>
-          <p class="text-sm text-muted-foreground mb-4">Faça backup dos seus dados ou restaure de um backup anterior.</p>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
-              <div>
-                <p class="font-medium text-foreground">Fazer Backup</p>
-                <p class="text-sm text-muted-foreground">Exporta todos os cursos e responsáveis para um arquivo JSON.</p>
-              </div>
-              <button onclick="exportBackup()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <!-- Aparência -->
+          <div class="card-elegant rounded-[20px] p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 bg-[#007AFF]/10 rounded-xl flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-[#007AFF]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                 </svg>
-                Exportar
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-foreground">Aparência</h3>
+                <p class="text-sm text-muted-foreground">Personalize a interface</p>
+              </div>
+            </div>
+            <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-xl">
+              <div>
+                <p class="font-medium text-foreground">Modo Escuro</p>
+                <p class="text-sm text-muted-foreground">Alterne entre tema claro e escuro</p>
+              </div>
+              <button id="theme-toggle" onclick="toggleTheme()" class="flex items-center gap-2 bg-[#007AFF] hover:bg-[#0051D5] text-white px-4 py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md">
+                <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+                <span id="theme-text">Modo Escuro</span>
               </button>
+            </div>
             </div>
             
-            <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
-              <div>
-                <p class="font-medium text-foreground">Restaurar Backup</p>
-                <p class="text-sm text-muted-foreground">Importa dados de um arquivo JSON de backup.</p>
-              </div>
-              <button onclick="openRestoreModal()" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          <!-- Importação de Dados -->
+          <div class="card-elegant rounded-[20px] p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 bg-green-500/10 rounded-xl flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
-                Importar
-              </button>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-foreground">Importação de Dados</h3>
+                <p class="text-sm text-muted-foreground">Importe cursos de planilhas</p>
+              </div>
             </div>
+            <button onclick="openImportModal()" class="w-full flex items-center justify-center gap-2 bg-[#007AFF] hover:bg-[#0051D5] text-white px-4 py-3 rounded-xl transition-all shadow-sm hover:shadow-md font-medium">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+              Importar Planilha
+              </button>
+            <p class="text-xs text-muted-foreground mt-2 text-center">Formatos: Excel (.xlsx, .xls) e CSV</p>
+            </div>
+
+          <!-- Backup e Restauração -->
+          <div class="card-elegant rounded-[20px] p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-foreground">Backup e Restauração</h3>
+                <p class="text-sm text-muted-foreground">Proteja seus dados</p>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <button onclick="exportBackup()" class="flex flex-col items-center gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-xl transition-colors border border-blue-200 dark:border-blue-800">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span class="text-sm font-medium text-foreground">Exportar</span>
+              </button>
+              <button onclick="openRestoreModal()" class="flex flex-col items-center gap-2 p-4 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-xl transition-colors border border-green-200 dark:border-green-800">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                <span class="text-sm font-medium text-foreground">Restaurar</span>
+              </button>
           </div>
         </div>
         
-        <!-- Instalar Aplicativo Desktop -->
-        <div class="border border-primary/30 rounded-lg p-4 bg-primary/5 mb-6">
-          <h3 class="text-lg font-medium text-foreground mb-2">Aplicativo Desktop</h3>
-          <p class="text-sm text-muted-foreground mb-4">Instale o aplicativo para acesso rápido, modo offline e notificações.</p>
-          
-          <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-lg mb-4">
-            <div>
-              <p class="font-medium text-foreground">Instalar Aplicativo</p>
-              <p class="text-sm text-muted-foreground">Instale o IAC como aplicativo desktop para acesso rápido.</p>
+          <!-- Relatórios -->
+          <div class="card-elegant rounded-[20px] p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 bg-purple-500/10 rounded-xl flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-foreground">Relatórios</h3>
+                <p class="text-sm text-muted-foreground">Gere relatórios em PNG</p>
+              </div>
             </div>
-            <button onclick="showInstallInstructions()" class="flex items-center gap-2 bg-[#34C759] hover:bg-[#30D158] text-white px-4 py-2 rounded-lg transition-colors">
+            <button onclick="generateReport()" class="admin-only w-full flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-xl transition-all shadow-sm hover:shadow-md font-medium">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Gerar Relatório PNG
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Coluna Direita -->
+        <div class="space-y-6">
+          
+          <!-- Gerenciamento de Usuários -->
+          <div class="card-elegant rounded-[20px] p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 bg-orange-500/10 rounded-xl flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-foreground">Usuários e Permissões</h3>
+                <p class="text-sm text-muted-foreground">Gerencie acessos e permissões</p>
+              </div>
+            </div>
+            <button onclick="openUsersManagementModal()" class="admin-only w-full flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-3 rounded-xl transition-all shadow-sm hover:shadow-md font-medium">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              Gerenciar Usuários
+              </button>
+            <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+              <p class="text-xs text-foreground font-medium mb-1">Tipos de Acesso:</p>
+              <ul class="text-xs text-muted-foreground space-y-1">
+                <li>• <strong>Admin:</strong> Acesso total</li>
+                <li>• <strong>User:</strong> Criar/editar cursos</li>
+                <li>• <strong>Viewer:</strong> Apenas visualização</li>
+              </ul>
+            </div>
+            </div>
+            
+          <!-- Logs de Ações -->
+          <div class="card-elegant rounded-[20px] p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-foreground">Logs de Ações</h3>
+                <p class="text-sm text-muted-foreground">Histórico de atividades</p>
+              </div>
+            </div>
+            <button onclick="openActionLogsModal()" class="admin-only w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-xl transition-all shadow-sm hover:shadow-md font-medium">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              Ver Logs
+              </button>
+            <p class="text-xs text-muted-foreground mt-2 text-center">Últimas 50 ações registradas</p>
+            </div>
+            
+          <!-- Notificações Push -->
+          <div class="card-elegant rounded-[20px] p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 bg-yellow-500/10 rounded-xl flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-foreground">Notificações</h3>
+                <p class="text-sm text-muted-foreground">Configure alertas</p>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between p-3 bg-secondary/30 rounded-xl">
+                <span class="text-sm font-medium text-foreground">Ativar Notificações</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="notifications-enabled" class="sr-only peer" onchange="toggleNotifications(this.checked)">
+                  <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+              <div class="p-3 bg-secondary/30 rounded-xl space-y-2">
+                <p class="text-xs font-medium text-foreground mb-2">Tipos de Notificação:</p>
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" id="notif-courses" checked class="w-4 h-4 text-[#007AFF] rounded">
+                  <span class="text-foreground">Cursos</span>
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" id="notif-tasks" checked class="w-4 h-4 text-[#007AFF] rounded">
+                  <span class="text-foreground">Tarefas</span>
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" id="notif-events" checked class="w-4 h-4 text-[#007AFF] rounded">
+                  <span class="text-foreground">Eventos</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Aplicativo Desktop -->
+          <div class="card-elegant rounded-[20px] p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-foreground">Aplicativo Desktop</h3>
+                <p class="text-sm text-muted-foreground">Instale como PWA</p>
+              </div>
+            </div>
+            <button onclick="showInstallInstructions()" class="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded-xl transition-all shadow-sm hover:shadow-md font-medium">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               Ver Instruções
-            </button>
-          </div>
-          
-          <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-            <h4 class="font-semibold text-foreground mb-2 flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-[#007AFF]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Instruções Rápidas
-            </h4>
-            <div class="text-sm text-foreground space-y-2">
-              <p><strong>Chrome/Edge:</strong> Clique no ícone de instalação (⊕) na barra de endereços ou no menu (⋮) → "Instalar IAC"</p>
-              <p><strong>Firefox:</strong> Menu (☰) → "Instalar" (se disponível)</p>
-              <p><strong>Safari (macOS):</strong> Compartilhar → "Adicionar à Tela de Início"</p>
+              </button>
             </div>
+
+          </div>
+      </div>
+
+      <!-- Zona de Perigo (Full Width) -->
+      <div class="card-elegant rounded-[20px] p-6 border-2 border-red-500/30 bg-red-500/5 admin-only" id="danger-zone">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-red-400">Zona de Perigo</h3>
+            <p class="text-sm text-muted-foreground">Ações irreversíveis - Apenas Administradores</p>
           </div>
         </div>
-        
-        <!-- Relatórios -->
-        <div class="border border-primary/30 rounded-lg p-4 bg-primary/5 mb-6">
-          <h3 class="text-lg font-medium text-foreground mb-2">Relatórios</h3>
-          <p class="text-sm text-muted-foreground mb-4">Gere relatórios em PNG com estatísticas e gráficos.</p>
-          
-          <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
-            <div>
-              <p class="font-medium text-foreground">Gerar Relatório PNG</p>
-              <p class="text-sm text-muted-foreground">Relatório completo com estatísticas e gráfico pizza.</p>
-            </div>
-            <button onclick="generateReport()" class="admin-only flex items-center gap-2 bg-[#007AFF] hover:bg-[#0051D5] text-white px-4 py-2 rounded-lg transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              Gerar PNG
-            </button>
-          </div>
-        </div>
-        
-        <div class="border border-red-500/30 rounded-lg p-4 bg-red-500/5">
-          <h3 class="text-lg font-medium text-red-400 mb-2">Zona de Perigo</h3>
-          <p class="text-sm text-muted-foreground mb-4">Ações irreversíveis. Tenha cuidado ao executar.</p>
-          
-          <div class="space-y-4">
-            <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
-              <div>
-                <p class="font-medium text-foreground">Excluir Todos os Cursos</p>
-                <p class="text-sm text-muted-foreground">Remove todos os cursos cadastrados no sistema.</p>
-              </div>
-              <button onclick="deleteAllCourses()" class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Excluir Cursos
-              </button>
-            </div>
-            
-            <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
-              <div>
-                <p class="font-medium text-foreground">Excluir Todos os Responsáveis</p>
-                <p class="text-sm text-muted-foreground">Remove todos os responsáveis de todos os lotes.</p>
-              </div>
-              <button onclick="deleteAllResponsibles()" class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                Excluir Responsáveis
-              </button>
-            </div>
-            
-            <div class="flex items-center justify-between p-4 bg-secondary/30 rounded-lg border border-red-500/50">
-              <div>
-                <p class="font-medium text-red-400">Excluir Todos os Dados</p>
-                <p class="text-sm text-muted-foreground">Remove todos os cursos e responsáveis do sistema.</p>
-              </div>
-              <button onclick="deleteAllData()" class="flex items-center gap-2 bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                Excluir Tudo
-              </button>
-            </div>
-          </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button onclick="deleteAllCourses()" class="flex flex-col items-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-colors border border-red-300 dark:border-red-800">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span class="text-sm font-medium text-red-600 dark:text-red-400">Excluir Cursos</span>
+          </button>
+          <button onclick="deleteAllResponsibles()" class="flex flex-col items-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-colors border border-red-300 dark:border-red-800">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span class="text-sm font-medium text-red-600 dark:text-red-400">Excluir Responsáveis</span>
+          </button>
+          <button onclick="deleteAllData()" class="flex flex-col items-center gap-2 p-4 bg-red-100 dark:bg-red-900/40 hover:bg-red-200 dark:hover:bg-red-900/50 rounded-xl transition-colors border-2 border-red-400 dark:border-red-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-red-700 dark:text-red-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span class="text-sm font-bold text-red-700 dark:text-red-300">Excluir Tudo</span>
+          </button>
         </div>
       </div>
     </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[2000] space-y-2" style="padding-top: env(safe-area-inset-top, 0);"></div>
+
+  <!-- Tour Modal -->
+  <div id="tour-modal" class="fixed inset-0 z-[2000] hidden">
+    <div class="modal-overlay absolute inset-0 bg-black/50" onclick="closeTour()"></div>
+    <div class="modal-content w-full max-w-md mx-auto mt-20 md:mt-32 rounded-2xl shadow-2xl overflow-hidden" style="margin-top: max(env(safe-area-inset-top, 0) + 80px, 80px);">
+      <div class="bg-gradient-to-br from-[#007AFF] to-[#0051D5] p-6 text-white">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-2xl font-bold">Bem-vindo ao IAC!</h3>
+          <button onclick="closeTour()" class="p-2 hover:bg-white/20 rounded-lg transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <p class="text-white/90">Vamos fazer um tour rápido pelo sistema</p>
+      </div>
+      <div class="bg-card p-6">
+        <div id="tour-content" class="space-y-4">
+          <!-- Conteúdo será preenchido dinamicamente -->
+        </div>
+        <div class="flex items-center justify-between mt-6 pt-4 border-t border-border">
+          <button onclick="previousTourStep()" id="tour-prev" class="px-4 py-2 text-foreground hover:bg-secondary/50 rounded-lg transition-colors hidden">
+            Anterior
+          </button>
+          <div class="flex gap-2" id="tour-dots"></div>
+          <button onclick="nextTourStep()" id="tour-next" class="px-4 py-2 bg-[#007AFF] hover:bg-[#0051D5] text-white rounded-lg transition-colors">
+            Próximo
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Import Modal -->
@@ -1782,6 +1980,20 @@
     let isLoggedIn = false;
     let firebaseAuth = null;
     let unsubscribeCourses = null;
+    let currentUser = null;
+    let userRole = 'user'; // 'admin', 'user', 'viewer'
+    let actionLogs = [];
+    let sessionTimeout = null;
+    let lastActionTime = Date.now();
+    let pendingActions = new Set();
+    let tourSteps = [
+      { title: 'Dashboard', content: 'Visualize todos os cursos organizados por lote. Use os filtros para encontrar cursos específicos.', target: 'tab-dashboard' },
+      { title: 'Cronograma', content: 'Veja os cursos em formato de prateleira. Clique em um card para ver detalhes completos.', target: 'tab-cronograma' },
+      { title: 'Calendário', content: 'Acompanhe datas de início e fim dos cursos. Adicione eventos e tarefas.', target: 'tab-calendar' },
+      { title: 'Notificações', content: 'Receba alertas sobre cursos próximos de iniciar ou finalizar.', target: 'notifications-btn' },
+      { title: 'Configurações', content: 'Gerencie usuários, importe dados, gere relatórios e configure o sistema.', target: 'tab-settings' }
+    ];
+    let currentTourStep = 0;
     let unsubscribeResponsibles = null;
     window.editingResponsibleId = null; // Para controlar qual responsável está sendo editado
 
@@ -2014,8 +2226,40 @@
       try {
         if (window.firebaseAuth && window.firebaseModules) {
           return new Promise((resolve) => {
-            window.firebaseModules.onAuthStateChanged(window.firebaseAuth, (user) => {
+            window.firebaseModules.onAuthStateChanged(window.firebaseAuth, async (user) => {
               isLoggedIn = !!user;
+              currentUser = user;
+              
+              if (user) {
+                try {
+                  // Tentar obter custom claims do token (Firebase Custom Claims)
+                  const idTokenResult = await user.getIdTokenResult();
+                  userRole = idTokenResult.claims.role || 'user';
+                  
+                  // Fallback: verificar email se não tiver custom claim configurado
+                  if (!idTokenResult.claims.role) {
+                    const adminEmails = ['admin@iac.com', 'administrador@iac.com', 'alissonh26@gmail.com'];
+                    userRole = adminEmails.includes(user.email?.toLowerCase()) ? 'admin' : 'user';
+                  }
+                } catch (error) {
+                  console.error('Erro ao obter custom claims:', error);
+                  // Fallback para verificação por email
+                  const adminEmails = ['admin@iac.com', 'administrador@iac.com', 'alissonh26@gmail.com'];
+                  userRole = adminEmails.includes(user.email?.toLowerCase()) ? 'admin' : 'user';
+                }
+                
+                // Atualizar UI baseado no role
+                const dangerZone = document.getElementById('danger-zone');
+                if (dangerZone) {
+                  dangerZone.classList.toggle('hidden', userRole !== 'admin');
+                }
+                
+                logAction('Login', { email: user.email, role: userRole });
+              } else {
+                currentUser = null;
+                userRole = 'user';
+              }
+              
               updateUIForLoginStatus();
               renderAll();
               resolve(!!user);
@@ -2126,7 +2370,28 @@
         errorDiv.classList.remove('bg-red-500/20', 'border-red-500/50', 'text-red-400');
         errorDiv.classList.add('bg-blue-500/20', 'border-blue-500/50', 'text-blue-400');
 
-        await window.firebaseModules.signInWithEmailAndPassword(window.firebaseAuth, email, password);
+        const userCredential = await window.firebaseModules.signInWithEmailAndPassword(window.firebaseAuth, email, password);
+        currentUser = userCredential.user;
+        
+        // Obter custom claims do token (se configurado no Firebase)
+        try {
+          const idTokenResult = await currentUser.getIdTokenResult();
+          userRole = idTokenResult.claims.role || 'user';
+          
+          // Fallback: verificar email se não tiver custom claim configurado
+          if (!idTokenResult.claims.role) {
+            const adminEmails = ['admin@iac.com', 'administrador@iac.com', 'alissonh26@gmail.com'];
+            userRole = adminEmails.includes(email.toLowerCase()) ? 'admin' : 'user';
+          }
+        } catch (error) {
+          console.error('Erro ao obter custom claims:', error);
+          // Fallback para verificação por email
+          const adminEmails = ['admin@iac.com', 'administrador@iac.com', 'alissonh26@gmail.com'];
+          userRole = adminEmails.includes(email.toLowerCase()) ? 'admin' : 'user';
+        }
+        
+        logAction('Login', { email: email, role: userRole });
+        showToast('Login realizado com sucesso!', 'success');
         
         // Success - auth state will be updated by onAuthStateChanged
         closeLoginModal();
@@ -2631,7 +2896,7 @@
             <div class="w-20 h-20 bg-[rgba(142,142,147,0.1)] rounded-[20px] flex items-center justify-center mx-auto mb-6">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-[#8e8e93]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
+            </svg>
             </div>
             <p class="text-lg font-semibold text-[#1d1d1f] dark:text-[#f5f5f7] mb-2" style="letter-spacing: -0.02em;">Nenhum curso cadastrado</p>
             <p class="text-sm text-[#8e8e93]">Importe uma planilha ou adicione cursos manualmente</p>
@@ -2900,8 +3165,24 @@
         return;
       }
       if (!confirm('Deseja excluir este curso?')) return;
+      
+      const course = courses.find(c => c.id === id);
+      
       courses = courses.filter(c => c.id !== id);
       filteredCourses = filteredCourses.filter(c => c.id !== id);
+      
+      // Log da ação
+      if (course) {
+        logAction('Exclusão de Curso', {
+          courseId: id,
+          idCurso: course.idCurso,
+          tipologia: course.tipologia,
+          lote: course.lote,
+          municipio: course.municipio,
+          status: course.status
+        });
+      }
+      
       saveToStorage(); // Save after deletion
       updateFilters();
       renderAll();
@@ -2965,6 +3246,9 @@
       // Atualizar curso
       const courseIndex = courses.findIndex(c => c.id === currentEditCourse.id);
       if (courseIndex !== -1) {
+        const oldStatus = courses[courseIndex].status;
+        const oldConcludentes = courses[courseIndex].concludentes;
+        
         courses[courseIndex].dataInicio = dataInicio;
         courses[courseIndex].dataFim = dataFim;
         courses[courseIndex].status = status;
@@ -2978,13 +3262,28 @@
           filteredCourses[filteredIndex].status = status;
           filteredCourses[filteredIndex].concludentes = concludentes;
         }
+        
+        // Log da ação
+        logAction('Edição de Curso', {
+          courseId: currentEditCourse.id,
+          idCurso: currentEditCourse.idCurso,
+          tipologia: currentEditCourse.tipologia,
+          lote: currentEditCourse.lote,
+          municipio: currentEditCourse.municipio,
+          changes: {
+            status: oldStatus !== status ? { from: oldStatus, to: status } : null,
+            concludentes: oldConcludentes !== concludentes ? { from: oldConcludentes, to: concludentes } : null,
+            dataInicio: currentEditCourse.dataInicio !== dataInicio ? { from: currentEditCourse.dataInicio, to: dataInicio } : null,
+            dataFim: currentEditCourse.dataFim !== dataFim ? { from: currentEditCourse.dataFim, to: dataFim } : null
+          }
+        });
       }
       
       // Salvar e atualizar
       saveToStorage();
       renderAll();
       closeEditCourseModal();
-      alert('Curso atualizado com sucesso!');
+      showToast('Curso atualizado com sucesso!', 'success');
     }
 
     function deleteLot() {
@@ -2999,6 +3298,20 @@
     }
 
     function deleteAllCourses() {
+      if (userRole !== 'admin') {
+        showToast('Apenas administradores podem executar esta ação.', 'error');
+        return;
+      }
+      
+      if (!confirm('⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL!\n\nTem certeza que deseja excluir TODOS os cursos?\n\nDigite "CONFIRMAR" para continuar.')) return;
+      
+      const confirmation = prompt('Digite "CONFIRMAR" para excluir todos os cursos:');
+      if (confirmation !== 'CONFIRMAR') {
+        showToast('Ação cancelada.', 'info');
+        return;
+      }
+      
+      logAction('Exclusão Crítica', { action: 'deleteAllCourses' });
       if (!confirm('Deseja excluir TODOS os cursos? Esta ação não pode ser desfeita.')) return;
       courses = [];
       filteredCourses = [];
@@ -3017,6 +3330,20 @@
     }
 
     function deleteAllData() {
+      if (userRole !== 'admin') {
+        showToast('Apenas administradores podem executar esta ação.', 'error');
+        return;
+      }
+      
+      if (!confirm('⚠️ ATENÇÃO CRÍTICA: Esta ação é IRREVERSÍVEL!\n\nTem certeza que deseja excluir TODOS os dados do sistema?')) return;
+      
+      const confirmation = prompt('Digite "EXCLUIR TUDO" para confirmar:');
+      if (confirmation !== 'EXCLUIR TUDO') {
+        showToast('Ação cancelada.', 'info');
+        return;
+      }
+      
+      logAction('Exclusão Crítica Total', { action: 'deleteAllData' });
       if (!confirm('ATENÇÃO: Deseja excluir TODOS os dados (cursos e responsáveis)? Esta ação não pode ser desfeita.')) return;
       if (!confirm('Tem certeza absoluta? Esta ação é IRREVERSÍVEL.')) return;
       courses = [];
@@ -3053,7 +3380,14 @@
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
         
-        alert(`Backup exportado com sucesso!\n${courses.length} curso(s) e ${Object.keys(lotResponsibles).length} lote(s) com responsáveis.`);
+        // Log da ação
+        logAction('Exportação de Backup', {
+          coursesCount: courses.length,
+          responsiblesLots: Object.keys(lotResponsibles).length,
+          filename: `backup-cursos-${dateStr}.json`
+        });
+        
+        showToast(`Backup exportado com sucesso!\n${courses.length} curso(s) e ${Object.keys(lotResponsibles).length} lote(s) com responsáveis.`, 'success');
       } catch (error) {
         console.error('Erro ao exportar backup:', error);
         alert('Erro ao exportar backup. Verifique o console para mais detalhes.');
@@ -3263,11 +3597,22 @@
 
       courses.push(newCourse);
       filteredCourses = [...courses];
+      
+      // Log da ação
+      logAction('Criação de Curso', {
+        courseId: newCourse.id,
+        idCurso: idCurso,
+        tipologia: tipologia,
+        lote: lote,
+        municipio: municipio,
+        status: status
+      });
+      
       saveToStorage(); // Save after adding
       updateFilters();
       applyFilters();
       closeAddCourseModal();
-      alert('Curso adicionado com sucesso!');
+      showToast('Curso adicionado com sucesso!', 'success');
     }
 
     // Import Modal Functions
@@ -3565,6 +3910,15 @@
 
       courses = [...courses, ...validCourses];
       filteredCourses = [...courses];
+      
+      // Log da ação
+      logAction('Importação de Planilha', {
+        totalRows: uploadedData.length,
+        validCourses: validCourses.length,
+        invalidCount: invalidCount,
+        lots: [...new Set(validCourses.map(c => c.lote))].sort((a, b) => a - b)
+      });
+      
       saveToStorage();
       updateFilters();
       renderAll();
@@ -4190,17 +4544,35 @@
       courses[courseIndex].dataFim = document.getElementById('cronograma-edit-fim').value || null;
       courses[courseIndex].status = document.getElementById('cronograma-edit-status').value;
       courses[courseIndex].concludentes = document.getElementById('cronograma-edit-concludentes').value ? parseInt(document.getElementById('cronograma-edit-concludentes').value) : null;
+      const oldInstrutor = courses[courseIndex].instrutor;
+      const oldEndereco = courses[courseIndex].endereco;
+      const oldAlbumLink = courses[courseIndex].albumLink;
+      const oldInstrumentaisLink = courses[courseIndex].instrumentaisLink;
+      
       courses[courseIndex].instrutor = document.getElementById('cronograma-edit-instrutor').value.trim() || null;
       courses[courseIndex].endereco = document.getElementById('cronograma-edit-endereco').value.trim() || null;
       courses[courseIndex].albumLink = document.getElementById('cronograma-edit-album').value.trim() || null;
       courses[courseIndex].instrumentaisLink = document.getElementById('cronograma-edit-instrumentais').value.trim() || null;
+
+      // Log da ação
+      logAction('Edição de Curso (Cronograma)', {
+        courseId: currentEditCourse.id,
+        idCurso: currentEditCourse.idCurso,
+        tipologia: currentEditCourse.tipologia,
+        changes: {
+          instrutor: oldInstrutor !== courses[courseIndex].instrutor ? { from: oldInstrutor, to: courses[courseIndex].instrutor } : null,
+          endereco: oldEndereco !== courses[courseIndex].endereco ? { from: oldEndereco, to: courses[courseIndex].endereco } : null,
+          albumLink: oldAlbumLink !== courses[courseIndex].albumLink ? { from: oldAlbumLink, to: courses[courseIndex].albumLink } : null,
+          instrumentaisLink: oldInstrumentaisLink !== courses[courseIndex].instrumentaisLink ? { from: oldInstrumentaisLink, to: courses[courseIndex].instrumentaisLink } : null
+        }
+      });
 
       filteredCourses = [...courses];
       saveToStorage();
       renderAll();
       renderCronograma();
       closeCronogramaCourseModal();
-      alert('Curso atualizado com sucesso!');
+      showToast('Curso atualizado com sucesso!', 'success');
     }
 
     // Variáveis globais para navegação do calendário
@@ -4401,16 +4773,32 @@
       if (type === 'task') {
         calendarTasks.push(newItem);
         localStorage.setItem('calendar_tasks', JSON.stringify(calendarTasks));
+        
+        // Log da ação
+        logAction('Criação de Tarefa', {
+          taskId: newItem.id,
+          title: title,
+          date: date,
+          description: description || null
+        });
       } else {
         calendarEvents.push(newItem);
         localStorage.setItem('calendar_events', JSON.stringify(calendarEvents));
+        
+        // Log da ação
+        logAction('Criação de Evento', {
+          eventId: newItem.id,
+          title: title,
+          date: date,
+          description: description || null
+        });
       }
 
       renderCalendar();
       renderTasksList();
       closeAddEventModal();
       checkNotifications();
-      alert('Salvo com sucesso!');
+      showToast('Salvo com sucesso!', 'success');
     }
 
     function changeCalendarMonth(direction) {
@@ -5225,10 +5613,21 @@
         return;
       }
 
+      const oldStatus = courses[courseIndex].status;
       courses[courseIndex].status = newStatus;
       if (newStatus === 'Concluído' && concludentes !== null) {
         courses[courseIndex].concludentes = concludentes;
       }
+
+      // Log da ação
+      logAction('Atualização Rápida de Status', {
+        courseId: courseId,
+        idCurso: courses[courseIndex].idCurso,
+        tipologia: courses[courseIndex].tipologia,
+        oldStatus: oldStatus,
+        newStatus: newStatus,
+        concludentes: newStatus === 'Concluído' ? concludentes : null
+      });
 
       filteredCourses = [...courses];
       saveToStorage();
@@ -5237,7 +5636,7 @@
       checkNotifications();
       renderNotifications();
       closeQuickUpdateModal();
-      alert('Status atualizado com sucesso!');
+      showToast('Status atualizado com sucesso!', 'success');
     }
 
     // Gerar Relatório PNG
@@ -5392,7 +5791,715 @@
         checkNotifications();
         setInterval(checkNotifications, 3600000);
       }, 1000);
+      
+      // Inicializar tour na primeira visita
+      setTimeout(() => {
+        if (!localStorage.getItem('tour-completed') && isLoggedIn) {
+          startTour();
+        }
+      }, 2000);
+      
+      initSessionTimeout();
     });
+
+    // ========== SISTEMA DE TOASTS ==========
+    function showToast(message, type = 'info', duration = 3000) {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500';
+      
+      toast.className = `${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 min-w-[300px] max-w-md`;
+      toast.style.animation = 'slide-in 0.3s ease-out';
+      toast.innerHTML = `
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()" class="ml-auto text-white/80 hover:text-white">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      `;
+      
+      container.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.animation = 'slide-out 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+      }, duration);
+    }
+
+    // ========== TOUR RÁPIDO ==========
+    function startTour() {
+      if (localStorage.getItem('tour-completed')) return;
+      currentTourStep = 0;
+      document.getElementById('tour-modal').classList.remove('hidden');
+      updateTourContent();
+    }
+
+    function nextTourStep() {
+      if (currentTourStep < tourSteps.length - 1) {
+        currentTourStep++;
+        updateTourContent();
+      } else {
+        completeTour();
+      }
+    }
+
+    function previousTourStep() {
+      if (currentTourStep > 0) {
+        currentTourStep--;
+        updateTourContent();
+      }
+    }
+
+    function updateTourContent() {
+      const step = tourSteps[currentTourStep];
+      const content = document.getElementById('tour-content');
+      const prevBtn = document.getElementById('tour-prev');
+      const nextBtn = document.getElementById('tour-next');
+      const dots = document.getElementById('tour-dots');
+
+      if (!content) return;
+
+      content.innerHTML = `
+        <div class="text-center">
+          <h4 class="text-xl font-semibold text-foreground mb-2">${step.title}</h4>
+          <p class="text-muted-foreground">${step.content}</p>
+        </div>
+      `;
+
+      if (prevBtn) prevBtn.classList.toggle('hidden', currentTourStep === 0);
+      if (nextBtn) nextBtn.textContent = currentTourStep === tourSteps.length - 1 ? 'Finalizar' : 'Próximo';
+
+      if (dots) {
+        dots.innerHTML = tourSteps.map((_, i) => 
+          `<div class="w-2 h-2 rounded-full ${i === currentTourStep ? 'bg-[#007AFF]' : 'bg-gray-300'}"></div>`
+        ).join('');
+      }
+    }
+
+    function completeTour() {
+      localStorage.setItem('tour-completed', 'true');
+      closeTour();
+      showToast('Tour concluído! Explore o sistema.', 'success');
+    }
+
+    function closeTour() {
+      const modal = document.getElementById('tour-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    // ========== LOGS DE AÇÕES ==========
+    function logAction(action, details = {}) {
+      const log = {
+        id: Date.now() + Math.random(), // Garantir ID único
+        timestamp: new Date().toISOString(),
+        user: currentUser?.email || 'Sistema',
+        userId: currentUser?.uid || null,
+        action: action,
+        details: details,
+        ip: 'N/A', // Em produção, pode capturar IP real
+        userAgent: navigator.userAgent || 'N/A'
+      };
+      
+      actionLogs.unshift(log);
+      if (actionLogs.length > 1000) actionLogs.pop();
+      
+      // Salvar no Firebase
+      if (window.database && window.firebaseModules) {
+        try {
+          const logsRef = window.firebaseModules.ref(window.database, 'actionLogs');
+          window.firebaseModules.set(window.firebaseModules.ref(logsRef, log.id.toString()), log);
+        } catch (e) {
+          console.error('Erro ao salvar log:', e);
+        }
+      }
+      
+      localStorage.setItem('actionLogs', JSON.stringify(actionLogs.slice(0, 100)));
+    }
+
+    async function openActionLogsModal() {
+      const modal = document.createElement('div');
+      modal.id = 'action-logs-modal';
+      modal.className = 'fixed inset-0 z-[1200]';
+      modal.innerHTML = `
+        <div class="modal-overlay absolute inset-0" onclick="this.closest('#action-logs-modal').remove()"></div>
+        <div class="modal-content w-full max-w-6xl max-h-[90vh] overflow-hidden">
+          <div class="p-6 border-b border-border/30 flex items-center justify-between">
+            <div>
+              <h2 class="text-2xl font-semibold text-foreground">Logs de Ações</h2>
+              <p class="text-sm text-muted-foreground mt-1">Histórico detalhado de todas as ações dos usuários</p>
+            </div>
+            <button onclick="this.closest('#action-logs-modal').remove()" class="p-2 hover:bg-secondary/50 rounded-lg">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Filtros -->
+          <div class="p-4 border-b border-border/30 bg-secondary/20">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Filtrar por Usuário</label>
+                <input type="text" id="filter-log-user" placeholder="Digite o email..." 
+                  class="w-full px-3 py-2 text-sm bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground"
+                  oninput="filterActionLogs()">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Filtrar por Ação</label>
+                <input type="text" id="filter-log-action" placeholder="Digite a ação..." 
+                  class="w-full px-3 py-2 text-sm bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground"
+                  oninput="filterActionLogs()">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Ordenar por</label>
+                <select id="sort-logs" onchange="filterActionLogs()" class="w-full px-3 py-2 text-sm bg-input border border-border rounded-lg text-foreground">
+                  <option value="recent">Mais Recente</option>
+                  <option value="oldest">Mais Antigo</option>
+                  <option value="user">Por Usuário</option>
+                  <option value="action">Por Ação</option>
+                </select>
+              </div>
+            </div>
+            <div class="mt-3 flex items-center justify-between">
+              <span class="text-xs text-muted-foreground" id="logs-count">Carregando...</span>
+              <button onclick="loadActionLogsFromFirebase()" class="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                Atualizar
+              </button>
+            </div>
+          </div>
+          
+          <div class="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+            <div class="space-y-3" id="logs-list">
+              <div class="text-center py-8">
+                <div class="w-8 h-8 border-3 border-[#007AFF] border-t-transparent rounded-full spinner-ios mx-auto mb-4"></div>
+                <p class="text-muted-foreground">Carregando logs...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      
+      // Carregar logs do Firebase
+      await loadActionLogsFromFirebase();
+    }
+
+    // Carregar logs do Firebase Realtime Database
+    async function loadActionLogsFromFirebase() {
+      const logsList = document.getElementById('logs-list');
+      if (!logsList) return;
+
+      try {
+        logsList.innerHTML = `
+          <div class="text-center py-4">
+            <div class="w-6 h-6 border-3 border-[#007AFF] border-t-transparent rounded-full spinner-ios mx-auto mb-2"></div>
+            <p class="text-sm text-muted-foreground">Carregando logs...</p>
+          </div>
+        `;
+
+        let allLogs = [...actionLogs]; // Começar com logs locais
+
+        // Tentar carregar do Firebase
+        if (window.database && window.firebaseModules) {
+          try {
+            const logsRef = window.firebaseModules.ref(window.database, 'actionLogs');
+            const snapshot = await window.firebaseModules.get(logsRef);
+            
+            if (snapshot.exists()) {
+              const firebaseLogs = snapshot.val();
+              // Converter objeto em array
+              const firebaseLogsArray = Object.values(firebaseLogs || {});
+              
+              // Combinar com logs locais e remover duplicatas
+              const allLogsMap = new Map();
+              
+              // Adicionar logs do Firebase
+              firebaseLogsArray.forEach(log => {
+                if (log && log.id) {
+                  allLogsMap.set(log.id, log);
+                }
+              });
+              
+              // Adicionar logs locais (podem ter IDs diferentes)
+              actionLogs.forEach(log => {
+                if (log && log.id) {
+                  allLogsMap.set(log.id, log);
+                }
+              });
+              
+              allLogs = Array.from(allLogsMap.values());
+            }
+          } catch (firebaseError) {
+            console.warn('Erro ao carregar logs do Firebase, usando logs locais:', firebaseError);
+          }
+        }
+
+        // Ordenar por timestamp (mais recente primeiro)
+        allLogs.sort((a, b) => {
+          const timeA = new Date(a.timestamp || 0).getTime();
+          const timeB = new Date(b.timestamp || 0).getTime();
+          return timeB - timeA;
+        });
+
+        // Renderizar logs
+        renderActionLogs(allLogs);
+      } catch (error) {
+        console.error('Erro ao carregar logs:', error);
+        logsList.innerHTML = `
+          <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <p class="text-sm text-red-600 dark:text-red-400">Erro ao carregar logs: ${error.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    // Renderizar lista de logs com filtros
+    function renderActionLogs(logs = null) {
+      const logsList = document.getElementById('logs-list');
+      const logsCount = document.getElementById('logs-count');
+      if (!logsList) return;
+
+      const logsToRender = logs || actionLogs;
+      
+      // Aplicar filtros
+      let filteredLogs = [...logsToRender];
+      
+      const filterUser = document.getElementById('filter-log-user')?.value.toLowerCase() || '';
+      const filterAction = document.getElementById('filter-log-action')?.value.toLowerCase() || '';
+      const sortBy = document.getElementById('sort-logs')?.value || 'recent';
+
+      if (filterUser) {
+        filteredLogs = filteredLogs.filter(log => 
+          log.user?.toLowerCase().includes(filterUser)
+        );
+      }
+
+      if (filterAction) {
+        filteredLogs = filteredLogs.filter(log => 
+          log.action?.toLowerCase().includes(filterAction)
+        );
+      }
+
+      // Ordenar
+      if (sortBy === 'recent') {
+        filteredLogs.sort((a, b) => {
+          const timeA = new Date(a.timestamp || 0).getTime();
+          const timeB = new Date(b.timestamp || 0).getTime();
+          return timeB - timeA;
+        });
+      } else if (sortBy === 'oldest') {
+        filteredLogs.sort((a, b) => {
+          const timeA = new Date(a.timestamp || 0).getTime();
+          const timeB = new Date(b.timestamp || 0).getTime();
+          return timeA - timeB;
+        });
+      } else if (sortBy === 'user') {
+        filteredLogs.sort((a, b) => (a.user || '').localeCompare(b.user || ''));
+      } else if (sortBy === 'action') {
+        filteredLogs.sort((a, b) => (a.action || '').localeCompare(b.action || ''));
+      }
+
+      // Atualizar contador
+      if (logsCount) {
+        logsCount.textContent = `Mostrando ${filteredLogs.length} de ${logsToRender.length} logs`;
+      }
+
+      if (filteredLogs.length === 0) {
+        logsList.innerHTML = `
+          <div class="text-center py-12">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p class="text-muted-foreground">Nenhum log encontrado</p>
+            ${filterUser || filterAction ? '<p class="text-xs text-muted-foreground mt-2">Tente ajustar os filtros</p>' : ''}
+          </div>
+        `;
+        return;
+      }
+
+      // Agrupar por data
+      const logsByDate = {};
+      filteredLogs.forEach(log => {
+        const date = new Date(log.timestamp);
+        const dateKey = date.toLocaleDateString('pt-BR', { 
+          day: '2-digit', 
+          month: '2-digit', 
+          year: 'numeric' 
+        });
+        
+        if (!logsByDate[dateKey]) {
+          logsByDate[dateKey] = [];
+        }
+        logsByDate[dateKey].push(log);
+      });
+
+      // Renderizar logs agrupados por data
+      logsList.innerHTML = Object.keys(logsByDate)
+        .sort((a, b) => {
+          // Ordenar datas (mais recente primeiro)
+          const dateA = new Date(a.split('/').reverse().join('-'));
+          const dateB = new Date(b.split('/').reverse().join('-'));
+          return dateB - dateA;
+        })
+        .map(dateKey => {
+          const dateLogs = logsByDate[dateKey];
+          return `
+            <div class="mb-6">
+              <h3 class="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                ${dateKey} (${dateLogs.length} ação${dateLogs.length !== 1 ? 'ões' : ''})
+              </h3>
+              <div class="space-y-2">
+                ${dateLogs.map(log => {
+                  const time = new Date(log.timestamp).toLocaleTimeString('pt-BR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  });
+                  
+                  // Determinar cor baseada no tipo de ação
+                  let actionColor = 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400';
+                  if (log.action?.includes('Exclusão') || log.action?.includes('Delete')) {
+                    actionColor = 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400';
+                  } else if (log.action?.includes('Criação') || log.action?.includes('Create') || log.action?.includes('Adicionar')) {
+                    actionColor = 'bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400';
+                  } else if (log.action?.includes('Edição') || log.action?.includes('Edit') || log.action?.includes('Atualização')) {
+                    actionColor = 'bg-yellow-500/10 border-yellow-500/20 text-yellow-600 dark:text-yellow-400';
+                  }
+                  
+                  return `
+                    <div class="p-4 bg-card border border-border rounded-xl hover:shadow-md transition-all">
+                      <div class="flex items-start justify-between mb-3">
+                        <div class="flex-1">
+                          <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2.5 py-1 rounded-lg text-xs font-semibold ${actionColor} border">
+                              ${log.action || 'Ação Desconhecida'}
+                            </span>
+                            <span class="text-xs text-muted-foreground">${time}</span>
+                          </div>
+                          <div class="flex items-center gap-2 text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <span class="font-medium text-foreground">${log.user || 'Sistema'}</span>
+                          </div>
+                        </div>
+                      </div>
+                      ${Object.keys(log.details || {}).length > 0 ? `
+                        <div class="mt-3 pt-3 border-t border-border/30">
+                          <p class="text-xs font-medium text-muted-foreground mb-2">Detalhes:</p>
+                          <div class="bg-secondary/30 rounded-lg p-3 space-y-1.5">
+                            ${Object.entries(log.details).map(([key, value]) => {
+                              let displayValue = value;
+                              if (typeof value === 'object') {
+                                displayValue = JSON.stringify(value, null, 2);
+                              } else if (value === null || value === undefined) {
+                                displayValue = 'N/A';
+                              }
+                              return `
+                                <div class="flex items-start gap-2 text-xs">
+                                  <span class="font-medium text-foreground min-w-[100px]">${key}:</span>
+                                  <span class="text-muted-foreground break-words">${displayValue}</span>
+                                </div>
+                              `;
+                            }).join('')}
+                          </div>
+                        </div>
+                      ` : ''}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }).join('');
+    }
+
+    // Função para filtrar logs
+    function filterActionLogs() {
+      renderActionLogs();
+    }
+
+    // ========== GERENCIAMENTO DE USUÁRIOS ==========
+    function openUsersManagementModal() {
+      if (userRole !== 'admin') {
+        showToast('Apenas administradores podem gerenciar usuários.', 'error');
+        return;
+      }
+
+      const modal = document.createElement('div');
+      modal.id = 'users-management-modal';
+      modal.className = 'fixed inset-0 z-[1200]';
+      modal.innerHTML = `
+        <div class="modal-overlay absolute inset-0" onclick="this.closest('#users-management-modal').remove()"></div>
+        <div class="modal-content w-full max-w-3xl max-h-[90vh] overflow-hidden">
+          <div class="p-6 border-b border-border/30 flex items-center justify-between">
+            <h2 class="text-2xl font-semibold text-foreground">Gerenciamento de Usuários</h2>
+            <button onclick="this.closest('#users-management-modal').remove()" class="p-2 hover:bg-secondary/50 rounded-lg">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+            <div class="mb-4">
+              <p class="text-muted-foreground mb-4">Gerencie permissões e tipos de acesso dos usuários.</p>
+              <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <p class="text-sm text-foreground"><strong>Tipos de Acesso:</strong></p>
+                <ul class="text-sm text-muted-foreground mt-2 space-y-1 list-disc list-inside">
+                  <li><strong>Admin:</strong> Acesso total, incluindo zona de perigo</li>
+                  <li><strong>User:</strong> Pode criar, editar e excluir cursos</li>
+                  <li><strong>Viewer:</strong> Apenas visualização</li>
+                </ul>
+              </div>
+            </div>
+            <div class="space-y-3" id="users-list">
+              <div class="text-center py-8">
+                <p class="text-muted-foreground mb-4">Carregando lista de usuários...</p>
+                <div class="flex justify-center">
+                  <div class="w-8 h-8 border-3 border-[#007AFF] border-t-transparent rounded-full spinner-ios"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      
+      // Carregar lista de usuários
+      loadUsersList();
+    }
+
+    // Função para carregar lista de usuários
+    async function loadUsersList() {
+      const usersList = document.getElementById('users-list');
+      if (!usersList) return;
+
+      try {
+        // Tentar usar Cloud Function se disponível
+        if (window.firebaseFunctions && window.firebaseFunctionsModule) {
+          const getUsers = window.firebaseFunctionsModule.httpsCallable(window.firebaseFunctions, 'getUsers');
+          const result = await getUsers();
+          
+          if (result.data.success) {
+            renderUsersList(result.data.users);
+            return;
+          }
+        }
+        
+        // Fallback: mostrar mensagem
+        usersList.innerHTML = `
+          <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <p class="text-sm text-foreground mb-2"><strong>Cloud Functions não configurado</strong></p>
+            <p class="text-xs text-muted-foreground">
+              Para gerenciar usuários, configure Firebase Functions seguindo o guia: <strong>GUIA_FIREBASE_FUNCTIONS.md</strong>
+            </p>
+            <p class="text-xs text-muted-foreground mt-2">
+              Atualmente, apenas emails na lista de administradores têm acesso admin.
+            </p>
+          </div>
+        `;
+      } catch (error) {
+        console.error('Erro completo ao carregar usuários:', error);
+        console.error('Detalhes do erro:', {
+          code: error.code,
+          message: error.message,
+          details: error.details
+        });
+        
+        let errorMessage = 'Erro desconhecido';
+        let errorDetails = '';
+        
+        if (error.code === 'functions/internal') {
+          errorMessage = 'Erro interno na Cloud Function.';
+          errorDetails = error.message || 'Verifique os logs das Functions no Firebase Console.';
+        } else if (error.code === 'functions/permission-denied') {
+          errorMessage = 'Você não tem permissão para acessar esta função.';
+          errorDetails = 'Apenas administradores podem ver usuários.';
+        } else if (error.code === 'functions/unauthenticated') {
+          errorMessage = 'Você precisa estar logado para acessar esta função.';
+          errorDetails = 'Faça login e tente novamente.';
+        } else if (error.message) {
+          errorMessage = error.message;
+          errorDetails = error.code || 'Erro desconhecido';
+        }
+        
+        usersList.innerHTML = `
+          <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <p class="text-sm font-medium text-red-600 dark:text-red-400 mb-2">Erro ao carregar usuários</p>
+            <p class="text-xs text-red-500 dark:text-red-400 mb-2">${errorMessage}</p>
+            ${errorDetails ? `<p class="text-xs text-muted-foreground mb-3">${errorDetails}</p>` : ''}
+            <div class="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p class="text-xs font-medium text-foreground mb-2">Como resolver:</p>
+              <ol class="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+                <li>Execute: <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">firebase deploy --only functions</code></li>
+                <li>Verifique os logs: Firebase Console → Functions → Logs</li>
+                <li>Certifique-se de estar logado como administrador</li>
+                <li>Recarregue a página após o deploy</li>
+              </ol>
+            </div>
+            <button onclick="loadUsersList()" class="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg transition-colors">
+              Tentar Novamente
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    // Função para renderizar lista de usuários
+    function renderUsersList(users) {
+      const usersList = document.getElementById('users-list');
+      if (!usersList) return;
+
+      if (!users || users.length === 0) {
+        usersList.innerHTML = '<p class="text-center text-muted-foreground py-8">Nenhum usuário encontrado</p>';
+        return;
+      }
+
+      usersList.innerHTML = users.map(user => `
+        <div class="p-4 bg-secondary/30 rounded-xl flex items-center justify-between">
+          <div class="flex-1">
+            <p class="font-medium text-foreground">${user.email || 'Sem email'}</p>
+            <p class="text-xs text-muted-foreground mt-1">
+              Role: <span class="font-semibold ${user.role === 'admin' ? 'text-red-500' : user.role === 'user' ? 'text-blue-500' : 'text-gray-500'}">${user.role || 'user'}</span>
+              ${user.displayName ? ` • ${user.displayName}` : ''}
+            </p>
+            <p class="text-xs text-muted-foreground">
+              Criado: ${new Date(user.createdAt).toLocaleDateString('pt-BR')}
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <select onchange="updateUserRole('${user.uid}', this.value)" class="px-3 py-1.5 text-sm border border-border rounded-lg bg-card text-foreground">
+              <option value="viewer" ${user.role === 'viewer' ? 'selected' : ''}>Viewer</option>
+              <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+              <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+            </select>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Função para atualizar role de usuário
+    async function updateUserRole(userUid, newRole) {
+      if (userRole !== 'admin') {
+        showToast('Apenas administradores podem alterar roles.', 'error');
+        return;
+      }
+
+      try {
+        // Tentar usar Cloud Function se disponível
+        if (window.firebaseFunctions && window.firebaseFunctionsModule) {
+          const setUserRole = window.firebaseFunctionsModule.httpsCallable(window.firebaseFunctions, 'setUserRole');
+          const result = await setUserRole({ 
+            uid: userUid,
+            role: newRole 
+          });
+          
+          if (result.data.success) {
+            showToast(`Role atualizado para ${newRole}`, 'success');
+            logAction('Atualização de Role', { uid: userUid, role: newRole });
+            
+            // Recarregar lista
+            loadUsersList();
+            
+            // Se for o próprio usuário, forçar refresh do token
+            if (currentUser && currentUser.uid === userUid) {
+              await currentUser.getIdToken(true);
+              const idTokenResult = await currentUser.getIdTokenResult();
+              userRole = idTokenResult.claims.role || newRole;
+              updateUIForLoginStatus();
+            }
+          } else {
+            showToast('Erro ao atualizar role', 'error');
+          }
+        } else {
+          showToast('Firebase Functions não configurado. Configure seguindo o guia.', 'warning');
+        }
+      } catch (error) {
+        console.error('Erro ao atualizar role:', error);
+        showToast('Erro ao atualizar role: ' + (error.message || 'Erro desconhecido'), 'error');
+      }
+    }
+
+    // ========== TIMEOUT DE SESSÃO ==========
+    function initSessionTimeout() {
+      const TIMEOUT_DURATION = 30 * 60 * 1000;
+      
+      function resetTimeout() {
+        lastActionTime = Date.now();
+        if (sessionTimeout) clearTimeout(sessionTimeout);
+        
+        sessionTimeout = setTimeout(() => {
+          if (isLoggedIn) {
+            showToast('Sessão expirada por inatividade. Faça login novamente.', 'warning', 5000);
+            handleLogout();
+          }
+        }, TIMEOUT_DURATION);
+      }
+
+      ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+        document.addEventListener(event, resetTimeout, true);
+      });
+
+      resetTimeout();
+    }
+
+    // ========== PROTEÇÃO CONTRA AÇÕES DUPLICADAS ==========
+    function preventDuplicateAction(actionId, actionFn, delay = 1000) {
+      if (pendingActions.has(actionId)) {
+        showToast('Ação já em andamento. Aguarde...', 'warning');
+        return;
+      }
+
+      pendingActions.add(actionId);
+      actionFn();
+      
+      setTimeout(() => {
+        pendingActions.delete(actionId);
+      }, delay);
+    }
+
+    // ========== NOTIFICAÇÕES PUSH ==========
+    function toggleNotifications(enabled) {
+      if (enabled) {
+        if ('Notification' in window && Notification.permission === 'default') {
+          Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+              showToast('Notificações ativadas!', 'success');
+              localStorage.setItem('notifications-enabled', 'true');
+            } else {
+              showToast('Permissão de notificações negada.', 'error');
+              const checkbox = document.getElementById('notifications-enabled');
+              if (checkbox) checkbox.checked = false;
+            }
+          });
+        } else if (Notification.permission === 'granted') {
+          showToast('Notificações ativadas!', 'success');
+          localStorage.setItem('notifications-enabled', 'true');
+        }
+      } else {
+        localStorage.setItem('notifications-enabled', 'false');
+        showToast('Notificações desativadas.', 'info');
+      }
+    }
+
+    // Adicionar animações CSS
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slide-in {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slide-out {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
   </script>
 </body>
 </html>

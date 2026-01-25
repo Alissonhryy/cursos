@@ -2,7 +2,9 @@ const CACHE_NAME = 'iac-v1';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png'
 ];
 
 // Install event - cache resources
@@ -33,8 +35,8 @@ self.addEventListener('push', (event) => {
   const title = data.title || 'IAC - Notificação';
   const options = {
     body: data.body || 'Nova notificação',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    icon: 'icon-192.png',
+    badge: 'icon-192.png',
     vibrate: [200, 100, 200],
     data: data
   };
@@ -52,4 +54,5 @@ self.addEventListener('notificationclick', (event) => {
     clients.openWindow('/')
   );
 });
+
 
