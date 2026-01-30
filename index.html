@@ -6126,7 +6126,7 @@
                 <div class="flex-1">
                   <div class="flex items-center gap-2 mb-1">
                     <h3 class="font-semibold text-[#1d1d1f] dark:text-[#f5f5f7] text-base line-clamp-2 flex-1" style="letter-spacing: -0.01em;">${course.tipologia}</h3>
-                    ${normalizeStatus(course.status || '') === 'pendente' ? `
+                    ${normalizeStatus(course.status || '') === 'pendente' && userRole === 'admin' ? `
                       <button onclick="event.stopPropagation(); toggleTurmaFormada('${course.id}')" class="relative opacity-70 hover:opacity-100 transition-opacity" title="${course.turmaFormada ? 'Turma formada - Clique para desmarcar' : 'Marcar turma formada'}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 ${course.turmaFormada ? 'text-[#007AFF]' : 'text-[#8e8e93]'}" fill="${course.turmaFormada ? '#007AFF' : '#8e8e93'}" viewBox="0 0 24 24" style="filter: drop-shadow(0 1px 1px rgba(0,0,0,0.08));">
                           <path d="M3 21l9-18 9 18H3z"/>
@@ -6294,7 +6294,7 @@
                         <div class="flex items-start justify-between">
                           <div class="flex items-center gap-1.5 flex-1">
                             <h4 class="font-semibold text-[#1d1d1f] dark:text-[#f5f5f7] text-sm line-clamp-2 flex-1">${course.tipologia}</h4>
-                            ${normalizeStatus(course.status || '') === 'pendente' ? `
+                            ${normalizeStatus(course.status || '') === 'pendente' && userRole === 'admin' ? `
                               <button onclick="event.stopPropagation(); toggleTurmaFormada('${course.id}')" class="relative opacity-70 hover:opacity-100 transition-opacity flex-shrink-0" title="${course.turmaFormada ? 'Turma formada' : 'Marcar turma formada'}">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 ${course.turmaFormada ? 'text-[#007AFF]' : 'text-[#8e8e93]'}" fill="${course.turmaFormada ? '#007AFF' : '#8e8e93'}" viewBox="0 0 24 24" style="filter: drop-shadow(0 1px 1px rgba(0,0,0,0.08));">
                                   <path d="M3 21l9-18 9 18H3z"/>
@@ -6474,7 +6474,7 @@
                           <div class="flex items-start justify-between mb-2">
                             <div class="flex items-center gap-1.5 flex-1">
                               <h4 class="font-semibold text-[#1d1d1f] dark:text-[#f5f5f7] text-base flex-1">${course.tipologia}</h4>
-                              ${normalizeStatus(course.status || '') === 'pendente' ? `
+                              ${normalizeStatus(course.status || '') === 'pendente' && userRole === 'admin' ? `
                                 <button onclick="event.stopPropagation(); toggleTurmaFormada('${course.id}')" class="relative opacity-70 hover:opacity-100 transition-opacity flex-shrink-0" title="${course.turmaFormada ? 'Turma formada' : 'Marcar turma formada'}">
                                   <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 ${course.turmaFormada ? 'text-[#007AFF]' : 'text-[#8e8e93]'}" fill="${course.turmaFormada ? '#007AFF' : '#8e8e93'}" viewBox="0 0 24 24" style="filter: drop-shadow(0 1px 1px rgba(0,0,0,0.08));">
                                     <path d="M3 21l9-18 9 18H3z"/>
@@ -7381,6 +7381,12 @@
     function toggleTurmaFormada(courseId) {
       if (!isLoggedIn) {
         openLoginModal();
+        return;
+      }
+      
+      // Verificar se é administrador
+      if (userRole !== 'admin') {
+        showToast('Apenas administradores podem marcar turma formada.', 'error');
         return;
       }
       
