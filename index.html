@@ -1359,11 +1359,17 @@
               </svg>
               Gerar Relatório PNG
             </button>
-            <button onclick="downloadAllLotsPDF()" class="admin-only w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl transition-all shadow-sm hover:shadow-md font-medium">
+            <button onclick="downloadAllLotsPDF()" class="admin-only w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl transition-all shadow-sm hover:shadow-md font-medium mb-3">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               Baixar Todos os Lotes (PDF)
+            </button>
+            <button onclick="openCronogramaMesAtualModal()" class="admin-only w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-xl transition-all shadow-sm hover:shadow-md font-medium">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Baixar Cronograma do Mês Atual (PDF)
             </button>
           </div>
 
@@ -1921,18 +1927,33 @@
                 class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
             </div>
           </div>
+          <div class="grid grid-cols-2 gap-4 mt-4">
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Município</label>
+              <input type="text" id="edit-course-municipio-input" placeholder="Ex: São Paulo" 
+                class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            </div>
+          </div>
         </div>
 
-        <div id="edit-course-actions" class="flex justify-end gap-3 pt-4 border-t border-border/30 hidden">
-          <button onclick="closeEditCourseModal()" class="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-secondary/50 transition-colors">
-            Cancelar
-          </button>
-          <button onclick="saveEditedCourse()" class="px-4 py-2 bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary text-white rounded-lg transition-all duration-300 flex items-center gap-2 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40">
+        <div id="edit-course-actions" class="flex justify-between gap-3 pt-4 border-t border-border/30 hidden">
+          <button onclick="deleteCourseFromModal()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-300 flex items-center gap-2 shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-            Salvar Alterações
+            Excluir Card
           </button>
+          <div class="flex gap-3">
+            <button onclick="closeEditCourseModal()" class="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-secondary/50 transition-colors">
+              Cancelar
+            </button>
+            <button onclick="saveEditedCourse()" class="px-4 py-2 bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary text-white rounded-lg transition-all duration-300 flex items-center gap-2 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              Salvar Alterações
+            </button>
+          </div>
         </div>
         
         <div id="edit-course-view-only" class="flex justify-end gap-3 pt-4 border-t border-border/30">
@@ -2036,10 +2057,17 @@
           </div>
           <div class="grid grid-cols-2 gap-4 mt-4">
             <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-2">Município</label>
+              <input type="text" id="cronograma-edit-municipio" placeholder="Ex: São Paulo" 
+                class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            </div>
+            <div>
               <label class="block text-sm font-medium text-muted-foreground mb-2">Instrutor</label>
               <input type="text" id="cronograma-edit-instrutor" placeholder="Nome do instrutor" 
                 class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
             </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mt-4">
             <div>
               <label class="block text-sm font-medium text-muted-foreground mb-2">Endereço</label>
               <input type="text" id="cronograma-edit-endereco" placeholder="Endereço do curso" 
@@ -2060,16 +2088,24 @@
           </div>
         </div>
 
-        <div id="cronograma-actions" class="flex justify-end gap-3 pt-4 border-t border-border/30 hidden">
-          <button onclick="closeCronogramaCourseModal()" class="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-secondary/50 transition-colors">
-            Cancelar
-          </button>
-          <button onclick="saveCronogramaCourse()" class="px-4 py-2 bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary text-white rounded-lg transition-all duration-300 flex items-center gap-2 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40">
+        <div id="cronograma-actions" class="flex justify-between gap-3 pt-4 border-t border-border/30 hidden">
+          <button onclick="deleteCourseFromCronogramaModal()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-300 flex items-center gap-2 shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-            Salvar Alterações
+            Excluir Card
           </button>
+          <div class="flex gap-3">
+            <button onclick="closeCronogramaCourseModal()" class="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-secondary/50 transition-colors">
+              Cancelar
+            </button>
+            <button onclick="saveCronogramaCourse()" class="px-4 py-2 bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary text-white rounded-lg transition-all duration-300 flex items-center gap-2 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              Salvar Alterações
+            </button>
+          </div>
         </div>
         
         <div id="cronograma-view-only" class="flex justify-end gap-3 pt-4 border-t border-border/30">
@@ -2275,6 +2311,51 @@
             <p>Carregando histórico...</p>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Seleção de Cursos para Cronograma Mensal -->
+  <div id="cronograma-mes-atual-modal" class="fixed inset-0 z-[1100] hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeCronogramaMesAtualModal(event)"></div>
+    <div class="modal-content w-full max-w-4xl max-h-[90vh] card-elegant md:rounded-2xl shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between p-6 border-b border-border/30">
+        <div>
+          <h2 class="text-2xl font-semibold text-foreground">Selecionar Cursos para Cronograma Mensal</h2>
+          <p class="text-sm text-muted-foreground mt-1">Selecione os cursos que deseja incluir no PDF</p>
+        </div>
+        <button onclick="closeCronogramaMesAtualModal()" class="p-2 hover:bg-secondary/50 rounded-lg transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto max-h-[calc(90vh-180px)] scrollbar-thin">
+        <div class="mb-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <button onclick="selectAllCronogramaCourses()" class="px-3 py-1.5 text-sm bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-colors">
+              Selecionar Todos
+            </button>
+            <button onclick="deselectAllCronogramaCourses()" class="px-3 py-1.5 text-sm bg-secondary/50 hover:bg-secondary/70 text-foreground rounded-lg transition-colors">
+              Desmarcar Todos
+            </button>
+          </div>
+          <p class="text-sm text-muted-foreground" id="cronograma-selected-count">0 cursos selecionados</p>
+        </div>
+        <div id="cronograma-courses-list" class="space-y-2">
+          <!-- Lista de cursos será preenchida aqui -->
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 p-6 border-t border-border/30">
+        <button onclick="closeCronogramaMesAtualModal()" class="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-secondary/50 transition-colors">
+          Cancelar
+        </button>
+        <button onclick="generateCronogramaMesAtualPDF()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-300 flex items-center gap-2 shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-500/40">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Gerar PDF
+        </button>
       </div>
     </div>
   </div>
@@ -4115,6 +4196,7 @@
       document.getElementById('edit-course-fim').value = course.dataFim ? course.dataFim : '';
       document.getElementById('edit-course-status').value = course.status || 'Pendente';
       document.getElementById('edit-course-concludentes').value = course.concludentes !== null ? course.concludentes : '';
+      document.getElementById('edit-course-municipio-input').value = course.municipio || '';
       
       // Mostrar/ocultar seção de edição baseado no login
       const editableSection = document.getElementById('edit-course-editable-section');
@@ -4143,6 +4225,12 @@
       currentEditCourse = null;
     }
 
+    function deleteCourseFromModal() {
+      if (!currentEditCourse) return;
+      deleteCourse(currentEditCourse.id);
+      closeEditCourseModal();
+    }
+
     function saveEditedCourse() {
       if (!currentEditCourse) return;
       
@@ -4150,17 +4238,20 @@
       const dataFim = document.getElementById('edit-course-fim').value || null;
       const status = document.getElementById('edit-course-status').value;
       const concludentes = document.getElementById('edit-course-concludentes').value ? parseInt(document.getElementById('edit-course-concludentes').value) : null;
+      const municipio = document.getElementById('edit-course-municipio-input').value.trim() || null;
       
       // Atualizar curso
       const courseIndex = courses.findIndex(c => c.id === currentEditCourse.id);
       if (courseIndex !== -1) {
         const oldStatus = courses[courseIndex].status;
         const oldConcludentes = courses[courseIndex].concludentes;
+        const oldMunicipio = courses[courseIndex].municipio;
         
         courses[courseIndex].dataInicio = dataInicio;
         courses[courseIndex].dataFim = dataFim;
         courses[courseIndex].status = status;
         courses[courseIndex].concludentes = concludentes;
+        courses[courseIndex].municipio = municipio;
         courses[courseIndex].lastModified = {
           by: currentUser?.email || 'Sistema',
           at: new Date().toISOString()
@@ -4182,6 +4273,7 @@
           filteredCourses[filteredIndex].dataFim = dataFim;
           filteredCourses[filteredIndex].status = status;
           filteredCourses[filteredIndex].concludentes = concludentes;
+          filteredCourses[filteredIndex].municipio = municipio;
           filteredCourses[filteredIndex].lastModified = courses[courseIndex].lastModified;
           // Remover turma formada se status não for Pendente
           if (normalizedNewStatus !== 'pendente') {
@@ -4200,7 +4292,8 @@
             status: oldStatus !== status ? { from: oldStatus, to: status } : null,
             concludentes: oldConcludentes !== concludentes ? { from: oldConcludentes, to: concludentes } : null,
             dataInicio: currentEditCourse.dataInicio !== dataInicio ? { from: currentEditCourse.dataInicio, to: dataInicio } : null,
-            dataFim: currentEditCourse.dataFim !== dataFim ? { from: currentEditCourse.dataFim, to: dataFim } : null
+            dataFim: currentEditCourse.dataFim !== dataFim ? { from: currentEditCourse.dataFim, to: dataFim } : null,
+            municipio: oldMunicipio !== municipio ? { from: oldMunicipio, to: municipio } : null
           }
         });
       }
@@ -5468,6 +5561,446 @@
       showToast('PDF gerado com sucesso!', 'success');
     }
 
+    // Variável para armazenar cursos selecionados para o cronograma
+    let selectedCronogramaCourses = [];
+
+    // Abrir modal de seleção de cursos para cronograma mensal
+    function openCronogramaMesAtualModal() {
+      if (!isLoggedIn) {
+        openLoginModal();
+        return;
+      }
+
+      const today = new Date();
+      const currentMonth = today.getMonth();
+      const currentYear = today.getFullYear();
+
+      // Filtrar cursos do mês atual (mesma lógica da função original)
+      const monthCourses = courses.filter(course => {
+        const inicioDate = course.dataInicio ? new Date(course.dataInicio) : null;
+        const fimDate = course.dataFim ? new Date(course.dataFim) : null;
+        const normalizedStatus = normalizeStatus(course.status || '');
+        
+        // Cursos que iniciam no mês atual (mesmo que terminem em outro mês)
+        if (inicioDate && inicioDate.getMonth() === currentMonth && inicioDate.getFullYear() === currentYear) {
+          return true;
+        }
+        
+        // Cursos que terminam no mês atual (mesmo que tenham iniciado em outro mês)
+        if (fimDate && fimDate.getMonth() === currentMonth && fimDate.getFullYear() === currentYear) {
+          return true;
+        }
+        
+        // Cursos em andamento que passam pelo mês atual
+        if (inicioDate && fimDate && normalizedStatus.includes('andamento')) {
+          const inicioMonth = inicioDate.getMonth();
+          const inicioYear = inicioDate.getFullYear();
+          const fimMonth = fimDate.getMonth();
+          const fimYear = fimDate.getFullYear();
+          
+          const inicioBeforeOrDuring = (inicioYear < currentYear) || 
+                                      (inicioYear === currentYear && inicioMonth <= currentMonth);
+          const fimDuringOrAfter = (fimYear > currentYear) || 
+                                   (fimYear === currentYear && fimMonth >= currentMonth);
+          
+          if (inicioBeforeOrDuring && fimDuringOrAfter) {
+            return true;
+          }
+        }
+        
+        // Cursos com turmas formadas (sem datas)
+        if (course.turmaFormada && !course.dataInicio && !course.dataFim) {
+          return true;
+        }
+        
+        return false;
+      });
+
+      if (monthCourses.length === 0) {
+        alert('Nenhum curso encontrado para o mês atual.');
+        return;
+      }
+
+      // Inicializar todos os cursos como selecionados
+      selectedCronogramaCourses = monthCourses.map(c => c.id);
+
+      // Preencher lista de cursos
+      const listContainer = document.getElementById('cronograma-courses-list');
+      listContainer.innerHTML = monthCourses.map(course => {
+        const inicioDate = course.dataInicio ? formatDate(course.dataInicio) : '-';
+        const fimDate = course.dataFim ? formatDate(course.dataFim) : '-';
+        return `
+          <label class="flex items-start gap-3 p-3 bg-secondary/30 hover:bg-secondary/50 rounded-lg cursor-pointer transition-colors">
+            <input type="checkbox" 
+                   class="mt-1 w-5 h-5 text-primary border-border rounded focus:ring-primary" 
+                   value="${course.id}"
+                   checked
+                   onchange="updateCronogramaSelectedCount()">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-semibold text-foreground">${course.idCurso || '-'}</span>
+                <span class="text-sm text-muted-foreground">-</span>
+                <span class="font-medium text-foreground">${course.tipologia || '-'}</span>
+              </div>
+              <div class="text-sm text-muted-foreground">
+                <p>Município: ${course.municipio || '-'}</p>
+                <p>Início: ${inicioDate} | Fim: ${fimDate}</p>
+                <p>Status: ${course.status || 'Pendente'}</p>
+              </div>
+            </div>
+          </label>
+        `;
+      }).join('');
+
+      updateCronogramaSelectedCount();
+      document.getElementById('cronograma-mes-atual-modal').classList.remove('hidden');
+      document.body.classList.add('modal-open');
+    }
+
+    function closeCronogramaMesAtualModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('cronograma-mes-atual-modal').classList.add('hidden');
+      document.body.classList.remove('modal-open');
+      selectedCronogramaCourses = [];
+    }
+
+    function selectAllCronogramaCourses() {
+      const checkboxes = document.querySelectorAll('#cronograma-courses-list input[type="checkbox"]');
+      checkboxes.forEach(cb => {
+        cb.checked = true;
+        if (!selectedCronogramaCourses.includes(cb.value)) {
+          selectedCronogramaCourses.push(cb.value);
+        }
+      });
+      updateCronogramaSelectedCount();
+    }
+
+    function deselectAllCronogramaCourses() {
+      const checkboxes = document.querySelectorAll('#cronograma-courses-list input[type="checkbox"]');
+      checkboxes.forEach(cb => {
+        cb.checked = false;
+      });
+      selectedCronogramaCourses = [];
+      updateCronogramaSelectedCount();
+    }
+
+    function updateCronogramaSelectedCount() {
+      const checkboxes = document.querySelectorAll('#cronograma-courses-list input[type="checkbox"]');
+      selectedCronogramaCourses = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+      
+      const countElement = document.getElementById('cronograma-selected-count');
+      if (countElement) {
+        countElement.textContent = `${selectedCronogramaCourses.length} curso${selectedCronogramaCourses.length !== 1 ? 's' : ''} selecionado${selectedCronogramaCourses.length !== 1 ? 's' : ''}`;
+      }
+    }
+
+    function generateCronogramaMesAtualPDF() {
+      if (selectedCronogramaCourses.length === 0) {
+        alert('Selecione pelo menos um curso para gerar o PDF.');
+        return;
+      }
+
+      // Filtrar apenas os cursos selecionados
+      const selectedCourses = courses.filter(c => selectedCronogramaCourses.includes(c.id));
+      
+      closeCronogramaMesAtualModal();
+      downloadCronogramaMesAtualPDF(selectedCourses);
+    }
+
+    // Baixar cronograma do mês atual em PDF
+    function downloadCronogramaMesAtualPDF(selectedCourses = null) {
+      if (!isLoggedIn) {
+        openLoginModal();
+        return;
+      }
+      
+      const { jsPDF } = window.jspdf;
+      if (!jsPDF) {
+        alert('Biblioteca jsPDF não carregada. Por favor, recarregue a página.');
+        return;
+      }
+      
+      const today = new Date();
+      const currentMonth = today.getMonth();
+      const currentYear = today.getFullYear();
+      
+      // Usar cursos selecionados ou filtrar todos do mês atual
+      let monthCourses;
+      if (selectedCourses && selectedCourses.length > 0) {
+        monthCourses = selectedCourses;
+      } else {
+        // Filtrar cursos do mês atual
+        monthCourses = courses.filter(course => {
+        const inicioDate = course.dataInicio ? new Date(course.dataInicio) : null;
+        const fimDate = course.dataFim ? new Date(course.dataFim) : null;
+        const normalizedStatus = normalizeStatus(course.status || '');
+        
+        // Cursos que iniciam no mês atual (mesmo que terminem em outro mês)
+        if (inicioDate && inicioDate.getMonth() === currentMonth && inicioDate.getFullYear() === currentYear) {
+          return true;
+        }
+        
+        // Cursos que terminam no mês atual (mesmo que tenham iniciado em outro mês)
+        if (fimDate && fimDate.getMonth() === currentMonth && fimDate.getFullYear() === currentYear) {
+          return true;
+        }
+        
+        // Cursos em andamento que passam pelo mês atual
+        // (iniciaram antes ou durante o mês e terminam durante ou depois do mês)
+        if (inicioDate && fimDate && normalizedStatus.includes('andamento')) {
+          const inicioMonth = inicioDate.getMonth();
+          const inicioYear = inicioDate.getFullYear();
+          const fimMonth = fimDate.getMonth();
+          const fimYear = fimDate.getFullYear();
+          
+          // Verifica se o curso está ativo durante o mês atual
+          const inicioBeforeOrDuring = (inicioYear < currentYear) || 
+                                      (inicioYear === currentYear && inicioMonth <= currentMonth);
+          const fimDuringOrAfter = (fimYear > currentYear) || 
+                                   (fimYear === currentYear && fimMonth >= currentMonth);
+          
+          if (inicioBeforeOrDuring && fimDuringOrAfter) {
+            return true;
+          }
+        }
+        
+        // Cursos com turmas formadas (sem datas)
+        if (course.turmaFormada && !course.dataInicio && !course.dataFim) {
+          return true;
+        }
+        
+        return false;
+        });
+      }
+      
+      if (monthCourses.length === 0) {
+        alert('Nenhum curso encontrado para o mês atual.');
+        return;
+      }
+      
+      showToast('Gerando PDF do cronograma...', 'info');
+      
+      // Criar PDF vertical
+      const doc = new jsPDF('portrait');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 20;
+      
+      // Cabeçalho
+      doc.setFontSize(20);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(0, 0, 0);
+      const monthName = today.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      doc.text(`Cronograma - ${monthName.charAt(0).toUpperCase() + monthName.slice(1)}`, margin, 20);
+      
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, pageWidth - margin, 15, { align: 'right' });
+      
+      let yPos = 35;
+      
+      // Separar cursos a iniciar e a finalizar
+      const cursosAIniciar = [];
+      const cursosAFinalizar = [];
+      
+      monthCourses.forEach(course => {
+        const normalizedStatus = normalizeStatus(course.status || '');
+        const inicioDate = course.dataInicio ? new Date(course.dataInicio + 'T00:00:00') : null;
+        const fimDate = course.dataFim ? new Date(course.dataFim + 'T00:00:00') : null;
+        
+        const iniciaNoMes = inicioDate && inicioDate.getMonth() === currentMonth && inicioDate.getFullYear() === currentYear;
+        const terminaNoMes = fimDate && fimDate.getMonth() === currentMonth && fimDate.getFullYear() === currentYear;
+        
+        // Determinar se termina em outro mês (mas iniciou no mês atual)
+        let terminaEmOutroMes = false;
+        if (inicioDate && fimDate && iniciaNoMes) {
+          const fimMonth = fimDate.getMonth();
+          const fimYear = fimDate.getFullYear();
+          terminaEmOutroMes = (fimYear !== currentYear) || (fimYear === currentYear && fimMonth !== currentMonth);
+        }
+        
+        // Cursos a iniciar: 
+        // - Com turma formada sem data
+        // - Que iniciam no mês atual (mesmo que terminem em outro mês)
+        if (course.turmaFormada && !course.dataInicio && !course.dataFim) {
+          cursosAIniciar.push(course);
+        } else if (iniciaNoMes) {
+          cursosAIniciar.push(course);
+        }
+        
+        // Cursos a finalizar: 
+        // 1. Cursos que terminam no mês atual (mesmo que tenham iniciado em outro mês)
+        // 2. Cursos que iniciaram no mês atual mas terminam em outro mês
+        if (terminaNoMes || terminaEmOutroMes) {
+          cursosAFinalizar.push(course);
+        }
+      });
+      
+      // Cursos a Iniciar
+      if (cursosAIniciar.length > 0) {
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('Cursos a Iniciar:', margin, yPos);
+        yPos += 10;
+        
+        // Cabeçalho da tabela
+        doc.setFillColor(245, 245, 247);
+        doc.rect(margin, yPos - 8, pageWidth - (margin * 2), 10, 'F');
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        const headers = ['ID do Curso', 'Tipologia', 'Município', 'Data de Início'];
+        const colWidths = [30, 80, 40, 40];
+        let xPos = margin;
+        headers.forEach((header, i) => {
+          doc.text(header, xPos, yPos);
+          xPos += colWidths[i];
+        });
+        yPos += 8;
+        
+        // Linha divisória
+        doc.setDrawColor(0, 122, 255);
+        doc.setLineWidth(0.5);
+        doc.line(margin, yPos, pageWidth - margin, yPos);
+        yPos += 5;
+        
+        // Dados
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(9);
+        cursosAIniciar.forEach((course, index) => {
+          if (yPos > pageHeight - 30) {
+            doc.addPage();
+            yPos = 35;
+          }
+          
+          // Fundo alternado
+          if (index % 2 === 0) {
+            doc.setFillColor(250, 250, 250);
+            doc.rect(margin, yPos - 5, pageWidth - (margin * 2), 7, 'F');
+          }
+          
+          xPos = margin;
+          const rowData = [
+            course.idCurso || '-',
+            course.tipologia || '-',
+            course.municipio || '-',
+            course.dataInicio ? formatDate(course.dataInicio) : '-'
+          ];
+          
+          rowData.forEach((data, i) => {
+            let text = String(data || '-');
+            if (i === 1 && text.length > 30) {
+              const lines = doc.splitTextToSize(text, colWidths[i] - 3);
+              doc.text(lines, xPos, yPos);
+              yPos += (lines.length - 1) * 4;
+            } else {
+              if (text.length > 20 && i !== 1) {
+                text = text.substring(0, 17) + '...';
+              }
+              doc.text(text, xPos, yPos);
+            }
+            xPos += colWidths[i];
+          });
+          yPos += 7;
+          
+          // Linha divisória
+          doc.setDrawColor(240, 240, 240);
+          doc.setLineWidth(0.1);
+          doc.line(margin, yPos - 0.5, pageWidth - margin, yPos - 0.5);
+        });
+        yPos += 10;
+      }
+      
+      // Cursos a Finalizar
+      if (cursosAFinalizar.length > 0) {
+        if (yPos > pageHeight - 50) {
+          doc.addPage();
+          yPos = 35;
+        }
+        
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('Cursos a Finalizar:', margin, yPos);
+        yPos += 10;
+        
+        // Cabeçalho da tabela
+        doc.setFillColor(245, 245, 247);
+        doc.rect(margin, yPos - 8, pageWidth - (margin * 2), 10, 'F');
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        const headers = ['ID do Curso', 'Tipologia', 'Município', 'Data de Final'];
+        const colWidths = [30, 80, 40, 40];
+        let xPos = margin;
+        headers.forEach((header, i) => {
+          doc.text(header, xPos, yPos);
+          xPos += colWidths[i];
+        });
+        yPos += 8;
+        
+        // Linha divisória
+        doc.setDrawColor(0, 122, 255);
+        doc.setLineWidth(0.5);
+        doc.line(margin, yPos, pageWidth - margin, yPos);
+        yPos += 5;
+        
+        // Dados
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(9);
+        cursosAFinalizar.forEach((course, index) => {
+          if (yPos > pageHeight - 30) {
+            doc.addPage();
+            yPos = 35;
+          }
+          
+          // Fundo alternado
+          if (index % 2 === 0) {
+            doc.setFillColor(250, 250, 250);
+            doc.rect(margin, yPos - 5, pageWidth - (margin * 2), 7, 'F');
+          }
+          
+          xPos = margin;
+          const rowData = [
+            course.idCurso || '-',
+            course.tipologia || '-',
+            course.municipio || '-',
+            course.dataFim ? formatDate(course.dataFim) : '-'
+          ];
+          
+          rowData.forEach((data, i) => {
+            let text = String(data || '-');
+            if (i === 1 && text.length > 30) {
+              const lines = doc.splitTextToSize(text, colWidths[i] - 3);
+              doc.text(lines, xPos, yPos);
+              yPos += (lines.length - 1) * 4;
+            } else {
+              if (text.length > 20 && i !== 1) {
+                text = text.substring(0, 17) + '...';
+              }
+              doc.text(text, xPos, yPos);
+            }
+            xPos += colWidths[i];
+          });
+          yPos += 7;
+          
+          // Linha divisória
+          doc.setDrawColor(240, 240, 240);
+          doc.setLineWidth(0.1);
+          doc.line(margin, yPos - 0.5, pageWidth - margin, yPos - 0.5);
+        });
+      }
+      
+      // Salvar PDF
+      const fileName = `Cronograma-${monthName.replace(' ', '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+      showToast('PDF do cronograma gerado com sucesso!', 'success');
+    }
+
     // Variáveis globais para cronograma, calendário e notificações (serão inicializadas)
     let calendarEvents = [];
     let calendarTasks = [];
@@ -6030,6 +6563,7 @@
       document.getElementById('cronograma-edit-fim').value = course.dataFim || '';
       document.getElementById('cronograma-edit-status').value = course.status || 'Pendente';
       document.getElementById('cronograma-edit-concludentes').value = course.concludentes !== null ? course.concludentes : '';
+      document.getElementById('cronograma-edit-municipio').value = course.municipio || '';
       document.getElementById('cronograma-edit-instrutor').value = course.instrutor || '';
       document.getElementById('cronograma-edit-endereco').value = course.endereco || '';
       document.getElementById('cronograma-edit-album').value = course.albumLink || '';
@@ -6061,6 +6595,12 @@
       currentEditCourse = null;
     }
 
+    function deleteCourseFromCronogramaModal() {
+      if (!currentEditCourse) return;
+      deleteCourse(currentEditCourse.id);
+      closeCronogramaCourseModal();
+    }
+
     function saveCronogramaCourse() {
       if (!currentEditCourse || !isLoggedIn) return;
 
@@ -6071,6 +6611,7 @@
       courses[courseIndex].dataFim = document.getElementById('cronograma-edit-fim').value || null;
       courses[courseIndex].status = document.getElementById('cronograma-edit-status').value;
       courses[courseIndex].concludentes = document.getElementById('cronograma-edit-concludentes').value ? parseInt(document.getElementById('cronograma-edit-concludentes').value) : null;
+      courses[courseIndex].municipio = document.getElementById('cronograma-edit-municipio').value.trim() || null;
       const oldInstrutor = courses[courseIndex].instrutor;
       const oldEndereco = courses[courseIndex].endereco;
       const oldAlbumLink = courses[courseIndex].albumLink;
