@@ -1387,6 +1387,12 @@
               </svg>
               Gerar Relatório PNG
             </button>
+            <button onclick="exportSpreadsheet()" class="admin-only w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-xl transition-all shadow-sm hover:shadow-md font-medium mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Exportar Planilha Excel
+            </button>
             <button onclick="downloadAllLotsPDF()" class="admin-only w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl transition-all shadow-sm hover:shadow-md font-medium mb-3">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -2528,16 +2534,21 @@
     window.editingResponsibleId = null; // Para controlar qual responsável está sendo editado
 
     const fieldLabels = {
-      idCurso: 'ID do Curso',
-      tipologia: 'Tipologia',
-      cargaHoraria: 'Carga Horária',
-      dataInicio: 'Data Início',
-      dataFim: 'Data Fim',
-      municipio: 'Município',
-      lote: 'Lote',
-      status: 'Status',
-      concludentes: 'Concludentes',
-      cozinha: 'Cozinha'
+      idCurso: 'ID',
+      tipologia: 'TIPOLOGIA',
+      cargaHoraria: 'CARGA HORÁRIA',
+      dataInicio: 'DATA INÍCIO',
+      dataFim: 'DATA TÉRMINO',
+      municipio: 'CIDADE',
+      turno: 'TURNO',
+      lote: 'LOTE',
+      cozinha: 'COZINHA',
+      endereco: 'ENDEREÇO',
+      status: 'STATUS',
+      concludentes: 'CONCLUDENTES',
+      albumLink: 'ALBUM',
+      instrumentaisLink: 'INSTRUMENTAIS',
+      instrutor: 'INSTRUTOR'
     };
 
     async function saveToRealtimeDatabase() {
@@ -4696,6 +4707,212 @@
       }
     }
 
+    // ========== EXPORTAÇÃO INTELIGENTE DE PLANILHA ==========
+    function exportSpreadsheet() {
+      if (!window.XLSX) {
+        showToast('Biblioteca XLSX não carregada. Recarregue a página.', 'error');
+        return;
+      }
+
+      if (courses.length === 0) {
+        showToast('Não há cursos para exportar.', 'warning');
+        return;
+      }
+
+      try {
+        // Definir cabeçalhos na ordem exata especificada
+        const headers = [
+          'ID',
+          'TIPOLOGIA',
+          'CARGA HORÁRIA',
+          'DATA INÍCIO',
+          'DATA TÉRMINO',
+          'CIDADE',
+          'TURNO',
+          'LOTE',
+          'COZINHA',
+          'ENDEREÇO',
+          'STATUS',
+          'CONCLUDENTES',
+          'FOTOS',
+          'INSTRUMENTAIS'
+        ];
+
+        // Mapeamento de cabeçalhos para campos do curso
+        const fieldMapping = {
+          'ID': 'idCurso',
+          'TIPOLOGIA': 'tipologia',
+          'CARGA HORÁRIA': 'cargaHoraria',
+          'DATA INÍCIO': 'dataInicio',
+          'DATA TÉRMINO': 'dataFim',
+          'CIDADE': 'municipio',
+          'TURNO': 'turno',
+          'LOTE': 'lote',
+          'COZINHA': 'cozinha',
+          'ENDEREÇO': 'endereco',
+          'STATUS': 'status',
+          'CONCLUDENTES': 'concludentes',
+          'FOTOS': 'albumLink',
+          'INSTRUMENTAIS': 'instrumentaisLink'
+        };
+
+        // Preparar dados para exportação
+        const worksheetData = [];
+        
+        // Adicionar cabeçalhos
+        worksheetData.push(headers);
+
+        // Adicionar dados com correção automática
+        courses.forEach(course => {
+          const row = headers.map(header => {
+            const field = fieldMapping[header];
+            let value = course[field];
+
+            // Correção automática de erros
+            if (value === null || value === undefined) {
+              value = '';
+            } else if (field === 'dataInicio' || field === 'dataFim') {
+              // Formatar datas
+              if (value) {
+                try {
+                  const date = new Date(value);
+                  if (!isNaN(date.getTime())) {
+                    // Formato Excel: YYYY-MM-DD
+                    value = date.toISOString().split('T')[0];
+                  } else {
+                    value = '';
+                  }
+                } catch (e) {
+                  value = '';
+                }
+              } else {
+                value = '';
+              }
+            } else if (field === 'cargaHoraria' || field === 'concludentes' || field === 'lote') {
+              // Garantir números
+              value = value !== null && value !== undefined ? Number(value) : '';
+            } else if (field === 'albumLink' || field === 'instrumentaisLink' || field === 'endereco') {
+              // Campos de texto/URL que podem estar vazios
+              value = value !== null && value !== undefined ? String(value).trim() : '';
+            } else if (field === 'status') {
+              // Normalizar status
+              if (value) {
+                const normalized = String(value).trim().toLowerCase();
+                if (normalized === 'concluído' || normalized === 'concluido') {
+                  value = 'Concluído';
+                } else if (normalized === 'pendente') {
+                  value = 'Pendente';
+                } else if (normalized === 'em andamento' || normalized === 'em andamento.' || normalized === 'andamento') {
+                  value = 'Em andamento';
+                } else {
+                  value = String(value).trim();
+                }
+              } else {
+                value = 'Pendente';
+              }
+            } else {
+              // Converter para string e limpar
+              value = value !== null && value !== undefined ? String(value).trim() : '';
+            }
+
+            return value;
+          });
+          worksheetData.push(row);
+        });
+
+        // Criar workbook
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+
+        // Ajustar larguras das colunas
+        const colWidths = headers.map((header, idx) => {
+          const maxLength = Math.max(
+            header.length,
+            ...worksheetData.slice(1).map(row => String(row[idx] || '').length)
+          );
+          return { wch: Math.min(Math.max(maxLength + 2, 10), 50) };
+        });
+        ws['!cols'] = colWidths;
+
+        // Adicionar worksheet ao workbook
+        XLSX.utils.book_append_sheet(wb, ws, 'Cursos');
+
+        // Gerar arquivo
+        const dateStr = new Date().toISOString().split('T')[0];
+        XLSX.writeFile(wb, `cursos-export-${dateStr}.xlsx`);
+
+        // Log da ação
+        logAction('Exportação de Planilha', {
+          coursesCount: courses.length,
+          filename: `cursos-export-${dateStr}.xlsx`,
+          columns: headers.length
+        });
+
+        showToast(`Planilha exportada com sucesso!\n${courses.length} curso(s) exportado(s).`, 'success');
+      } catch (error) {
+        console.error('Erro ao exportar planilha:', error);
+        
+        // Tentar correção automática
+        try {
+          showToast('Tentando corrigir automaticamente...', 'info');
+          
+          // Remover campos problemáticos e tentar novamente
+          const simplifiedCourses = courses.map(c => ({
+            idCurso: c.idCurso || '',
+            tipologia: c.tipologia || '',
+            cargaHoraria: c.cargaHoraria || 0,
+            lote: c.lote || 0,
+            municipio: c.municipio || '',
+            cozinha: c.cozinha || '',
+            dataInicio: c.dataInicio ? new Date(c.dataInicio).toISOString().split('T')[0] : '',
+            dataFim: c.dataFim ? new Date(c.dataFim).toISOString().split('T')[0] : '',
+            status: c.status || 'Pendente',
+            turno: c.turno || '',
+            concludentes: c.concludentes || '',
+            endereco: c.endereco || '',
+            albumLink: c.albumLink || '',
+            instrumentaisLink: c.instrumentaisLink || ''
+          }));
+
+          const simplifiedData = [
+            ['ID', 'TIPOLOGIA', 'CARGA HORÁRIA', 'DATA INÍCIO', 'DATA TÉRMINO', 'CIDADE', 'TURNO', 'LOTE', 'COZINHA', 'ENDEREÇO', 'STATUS', 'CONCLUDENTES', 'FOTOS', 'INSTRUMENTAIS'],
+            ...simplifiedCourses.map(c => [
+              c.idCurso || '',
+              c.tipologia || '',
+              c.cargaHoraria || 0,
+              c.dataInicio || '',
+              c.dataFim || '',
+              c.municipio || '',
+              c.turno || '',
+              c.lote || 0,
+              c.cozinha || '',
+              c.endereco || '',
+              c.status || 'Pendente',
+              c.concludentes || '',
+              c.albumLink || '',
+              c.instrumentaisLink || ''
+            ])
+          ];
+
+          const wb = XLSX.utils.book_new();
+          const ws = XLSX.utils.aoa_to_sheet(simplifiedData);
+          XLSX.utils.book_append_sheet(wb, ws, 'Cursos');
+          
+          const dateStr = new Date().toISOString().split('T')[0];
+          XLSX.writeFile(wb, `cursos-export-${dateStr}.xlsx`);
+          
+          showToast('Planilha exportada com campos simplificados.', 'success');
+          logAction('Exportação de Planilha (Corrigida)', {
+            coursesCount: courses.length,
+            filename: `cursos-export-${dateStr}.xlsx`
+          });
+        } catch (retryError) {
+          console.error('Erro na correção automática:', retryError);
+          showToast('Erro ao exportar planilha. Verifique o console para mais detalhes.', 'error');
+        }
+      }
+    }
+
     let backupPreviewData = null;
 
     function openRestoreModal() {
@@ -4973,50 +5190,134 @@
         fileColumns = jsonData[0].map(col => String(col || '').trim()).filter(col => col);
         uploadedData = jsonData.slice(1).filter(row => row.some(cell => cell !== null && cell !== '' && cell !== undefined));
 
-        // Enhanced auto-detect column mapping - Map all possible fields intelligently
+        // Mapeamento inteligente aprimorado com múltiplos padrões e correção automática
         const fieldNames = Object.keys(fieldLabels);
         const mappingPatterns = {
-          idCurso: ['id', 'código', 'codigo', 'identificador', 'num', 'número', 'numero'],
-          tipologia: ['tipologia', 'tipo', 'curso', 'nome', 'nome do curso', 'curso/tipologia', 'descrição', 'descricao'],
-          cargaHoraria: ['carga', 'horária', 'horaria', 'carga horária', 'carga horaria', 'horas', 'h', 'ch', 'carga hor'],
-          dataInicio: ['início', 'inicio', 'data início', 'data inicio', 'dt início', 'dt inicio', 'início previsto', 'inicio previsto', 'start', 'começo', 'comeco'],
-          dataFim: ['fim', 'término', 'termino', 'data fim', 'data término', 'dt fim', 'dt termino', 'conclusão', 'conclusao', 'end', 'final'],
-          municipio: ['município', 'municipio', 'cidade', 'local', 'localização', 'localizacao', 'município sede', 'municipio sede'],
-          lote: ['lote', 'grupo', 'batch', 'lote número', 'lote numero', 'lote nº'],
-          status: ['status', 'situação', 'situacao', 'estado', 'andamento', 'status do curso'],
-          concludentes: ['concludentes', 'concluintes', 'alunos', 'matriculados', 'quantidade', 'qtd', 'total'],
-          cozinha: ['cozinha', 'coz', 'kitchen', 'nome cozinha', 'cozinha do curso']
+          idCurso: ['id', 'código', 'codigo', 'identificador', 'num', 'número', 'numero', 'id curso', 'id do curso', 'cod', 'cód'],
+          tipologia: ['tipologia', 'tipo', 'curso', 'nome', 'nome do curso', 'curso/tipologia', 'descrição', 'descricao', 'nome curso', 'tipo curso'],
+          cargaHoraria: ['carga', 'horária', 'horaria', 'carga horária', 'carga horaria', 'horas', 'h', 'ch', 'carga hor', 'c.h.', 'c.h', 'carga/hora'],
+          dataInicio: ['início', 'inicio', 'data início', 'data inicio', 'dt início', 'dt inicio', 'início previsto', 'inicio previsto', 'start', 'começo', 'comeco', 'data de início', 'data de inicio'],
+          dataFim: ['fim', 'término', 'termino', 'data fim', 'data término', 'dt fim', 'dt termino', 'conclusão', 'conclusao', 'end', 'final', 'data de fim', 'data de término'],
+          municipio: ['município', 'municipio', 'cidade', 'local', 'localização', 'localizacao', 'município sede', 'municipio sede', 'munic', 'cidade sede'],
+          turno: ['turno', 'período', 'periodo', 'horário', 'horario', 'manhã', 'manha', 'tarde', 'noite'],
+          lote: ['lote', 'grupo', 'batch', 'lote número', 'lote numero', 'lote nº', 'lote n', 'lote n°'],
+          cozinha: ['cozinha', 'coz', 'kitchen', 'nome cozinha', 'cozinha do curso', 'cozinha nº', 'cozinha n'],
+          endereco: ['endereço', 'endereco', 'endereço do curso', 'endereco do curso', 'localização', 'localizacao', 'local', 'end', 'address'],
+          status: ['status', 'situação', 'situacao', 'estado', 'andamento', 'status do curso', 'situação do curso'],
+          concludentes: ['concludentes', 'concluintes', 'alunos', 'matriculados', 'quantidade', 'qtd', 'total', 'qtd concludentes', 'total alunos'],
+          albumLink: ['album', 'álbum', 'fotos', 'link album', 'link álbum', 'drive album', 'drive álbum', 'link fotos', 'link drive', 'album link'],
+          instrumentaisLink: ['instrumentais', 'instrumental', 'link instrumentais', 'link instrumental', 'drive instrumentais', 'drive instrumental', 'instrumentais link'],
+          instrutor: ['instrutor', 'instrutores', 'nome instrutor', 'instrutor do curso', 'professor', 'prof', 'teacher']
         };
 
-        // Enhanced mapping with multiple patterns
+        // Função de similaridade para encontrar melhor match
+        function calculateSimilarity(str1, str2) {
+          const s1 = str1.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          const s2 = str2.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          
+          if (s1 === s2) return 1.0;
+          if (s1.includes(s2) || s2.includes(s1)) return 0.8;
+          
+          // Calcular similaridade por caracteres comuns
+          const longer = s1.length > s2.length ? s1 : s2;
+          const shorter = s1.length > s2.length ? s2 : s1;
+          const editDistance = levenshteinDistance(s1, s2);
+          return 1 - (editDistance / longer.length);
+        }
+
+        function levenshteinDistance(str1, str2) {
+          const matrix = [];
+          for (let i = 0; i <= str2.length; i++) {
+            matrix[i] = [i];
+          }
+          for (let j = 0; j <= str1.length; j++) {
+            matrix[0][j] = j;
+          }
+          for (let i = 1; i <= str2.length; i++) {
+            for (let j = 1; j <= str1.length; j++) {
+              if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+              } else {
+                matrix[i][j] = Math.min(
+                  matrix[i - 1][j - 1] + 1,
+                  matrix[i][j - 1] + 1,
+                  matrix[i - 1][j] + 1
+                );
+              }
+            }
+          }
+          return matrix[str2.length][str1.length];
+        }
+
+        // Mapeamento inteligente com pontuação
         fieldNames.forEach(field => {
           const patterns = mappingPatterns[field] || [];
           const labelLower = fieldLabels[field].toLowerCase();
           
-          const matchingCol = fileColumns.find(col => {
+          let bestMatch = null;
+          let bestScore = 0;
+          
+          fileColumns.forEach(col => {
             const colLower = col.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            let score = 0;
             
-            // Check exact match or field name
-            if (colLower === field.toLowerCase() || colLower === labelLower) return true;
+            // Match exato
+            if (colLower === field.toLowerCase() || colLower === labelLower) {
+              score = 1.0;
+            }
+            // Match por padrões
+            else if (patterns.some(pattern => colLower.includes(pattern) || pattern.includes(colLower))) {
+              score = 0.9;
+            }
+            // Match por similaridade
+            else {
+              score = calculateSimilarity(col, fieldLabels[field]);
+              // Bonus para padrões específicos
+              if (field === 'idCurso' && (colLower.match(/^(id|cód|cod|num)/) || colLower.includes('identificador'))) {
+                score = Math.max(score, 0.85);
+              }
+              if (field === 'cargaHoraria' && (colLower.includes('hor') || colLower.includes('carga'))) {
+                score = Math.max(score, 0.85);
+              }
+              if (field === 'municipio' && (colLower.includes('munic') || colLower.includes('cidade'))) {
+                score = Math.max(score, 0.85);
+              }
+            }
             
-            // Check if column contains any of the patterns
-            if (patterns.some(pattern => colLower.includes(pattern))) return true;
-            
-            // Check if label contains column name
-            if (labelLower.includes(colLower) || colLower.includes(labelLower)) return true;
-            
-            // Special cases
-            if (field === 'idCurso' && (colLower.match(/^(id|cód|cod|num)/) || colLower.includes('identificador'))) return true;
-            if (field === 'cargaHoraria' && (colLower.includes('hor') || colLower.includes('carga'))) return true;
-            if (field === 'municipio' && (colLower.includes('munic') || colLower.includes('cidade'))) return true;
-            
-            return false;
+            if (score > bestScore && score >= 0.6) {
+              bestScore = score;
+              bestMatch = col;
+            }
           });
           
-          if (matchingCol) {
-            columnMapping[field] = matchingCol;
+          if (bestMatch) {
+            columnMapping[field] = bestMatch;
           }
         });
+
+        // Correção automática: detectar e sugerir correções para campos críticos
+        const criticalFields = ['lote', 'tipologia'];
+        const missingFields = criticalFields.filter(field => !columnMapping[field]);
+        
+        if (missingFields.length > 0) {
+          // Tentar encontrar automaticamente com padrões mais flexíveis
+          missingFields.forEach(field => {
+            if (!columnMapping[field]) {
+              const patterns = mappingPatterns[field] || [];
+              const found = fileColumns.find(col => {
+                const colLower = col.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                return patterns.some(pattern => {
+                  const patternLower = pattern.toLowerCase();
+                  return colLower.includes(patternLower) || patternLower.includes(colLower) || 
+                         calculateSimilarity(col, fieldLabels[field]) > 0.5;
+                });
+              });
+              if (found) {
+                columnMapping[field] = found;
+              }
+            }
+          });
+        }
 
         // Store additional columns that weren't mapped to standard fields
         const mappedColumns = Object.values(columnMapping).filter(v => v);
@@ -5033,15 +5334,51 @@
       const fields = Object.keys(fieldLabels);
       const additionalCols = columnMapping._additionalColumns || [];
       
-      let html = fields.map(field => `
+      // Verificar campos críticos não mapeados
+      const criticalFields = ['lote', 'tipologia'];
+      const unmappedCritical = criticalFields.filter(field => !columnMapping[field]);
+      
+      let html = '';
+      
+      // Mostrar aviso se campos críticos não estão mapeados
+      if (unmappedCritical.length > 0) {
+        html += `
+          <div class="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <div class="flex items-start gap-3">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div class="flex-1">
+                <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-1">Campos críticos não mapeados</p>
+                <p class="text-xs text-yellow-700 dark:text-yellow-300">Os seguintes campos são obrigatórios: ${unmappedCritical.map(f => fieldLabels[f]).join(', ')}</p>
+                <button onclick="autoFixMapping()" class="mt-2 px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white text-xs rounded-lg transition-colors">
+                  🔧 Corrigir Automaticamente
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      html += fields.map(field => {
+        const isMapped = columnMapping[field];
+        const isCritical = criticalFields.includes(field);
+        const borderColor = isCritical && !isMapped ? 'border-yellow-500' : isMapped ? 'border-green-500' : 'border-border';
+        
+        return `
         <div class="flex items-center gap-4">
-          <label class="w-32 text-sm font-medium text-foreground">${fieldLabels[field]} ${field === 'lote' ? '*' : ''}</label>
-          <select id="map-${field}" class="flex-1 px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+          <label class="w-32 text-sm font-medium text-foreground">
+            ${fieldLabels[field]} 
+            ${field === 'lote' ? '<span class="text-red-500">*</span>' : ''}
+            ${isMapped ? '<span class="text-green-500 text-xs">✓</span>' : ''}
+          </label>
+          <select id="map-${field}" class="flex-1 px-3 py-2 bg-input border ${borderColor} rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
             <option value="">-- Não mapear --</option>
             ${fileColumns.map(col => `<option value="${col}" ${columnMapping[field] === col ? 'selected' : ''}>${col}</option>`).join('')}
           </select>
         </div>
-      `).join('');
+      `;
+      }).join('');
       
       // Add additional columns mapping section
       if (additionalCols.length > 0) {
@@ -5077,17 +5414,141 @@
       document.getElementById('import-step-3').classList.add('hidden');
     }
 
+    function autoFixMapping() {
+      const fields = Object.keys(fieldLabels);
+      const criticalFields = ['lote', 'tipologia'];
+      
+      // Tentar mapear automaticamente campos críticos não mapeados
+      criticalFields.forEach(field => {
+        if (!columnMapping[field]) {
+          const label = fieldLabels[field].toLowerCase();
+          const patterns = {
+            lote: ['lote', 'grupo', 'batch', 'número', 'numero'],
+            tipologia: ['tipologia', 'tipo', 'curso', 'nome']
+          };
+          
+          const fieldPatterns = patterns[field] || [];
+          const bestMatch = fileColumns.find(col => {
+            const colLower = col.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            return fieldPatterns.some(pattern => colLower.includes(pattern.toLowerCase()));
+          });
+          
+          if (bestMatch) {
+            columnMapping[field] = bestMatch;
+            const select = document.getElementById(`map-${field}`);
+            if (select) select.value = bestMatch;
+          }
+        }
+      });
+      
+      // Re-renderizar para mostrar correções
+      renderMappingStep();
+      showToast('Mapeamento corrigido automaticamente!', 'success');
+    }
+
     function goToStep3() {
+      // Validar campos críticos antes de prosseguir
+      const loteColumn = columnMapping['lote'];
+      if (!loteColumn) {
+        showToast('Por favor, mapeie a coluna "Lote" antes de continuar.', 'error');
+        return;
+      }
+      
       // Collect mapping
       const fields = Object.keys(fieldLabels);
       fields.forEach(field => {
         const select = document.getElementById(`map-${field}`);
-        columnMapping[field] = select.value;
+        if (select) {
+          columnMapping[field] = select.value;
+        }
       });
+
+      // Validar dados antes de mostrar preview
+      const validationErrors = validateImportedData();
+      if (validationErrors.length > 0) {
+        showValidationErrors(validationErrors);
+        return;
+      }
 
       renderPreview();
       document.getElementById('import-step-2').classList.add('hidden');
       document.getElementById('import-step-3').classList.remove('hidden');
+    }
+
+    function validateImportedData() {
+      const errors = [];
+      const fields = Object.keys(fieldLabels);
+      const loteIndex = fileColumns.indexOf(columnMapping['lote']);
+      
+      if (loteIndex === -1) {
+        errors.push('Coluna "Lote" não encontrada.');
+        return errors;
+      }
+      
+      // Validar algumas linhas de exemplo
+      const sampleRows = uploadedData.slice(0, Math.min(10, uploadedData.length));
+      sampleRows.forEach((row, idx) => {
+        const loteValue = row[loteIndex];
+        if (!loteValue || isNaN(parseInt(loteValue))) {
+          errors.push(`Linha ${idx + 2}: Lote inválido ou vazio`);
+        }
+      });
+      
+      return errors;
+    }
+
+    function showValidationErrors(errors) {
+      const errorHtml = `
+        <div class="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <div class="flex items-start gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div class="flex-1">
+              <p class="text-sm font-medium text-red-800 dark:text-red-200 mb-2">Erros encontrados na planilha:</p>
+              <ul class="text-xs text-red-700 dark:text-red-300 list-disc list-inside space-y-1">
+                ${errors.slice(0, 5).map(e => `<li>${e}</li>`).join('')}
+                ${errors.length > 5 ? `<li>... e mais ${errors.length - 5} erro(s)</li>` : ''}
+              </ul>
+              <button onclick="autoFixDataErrors()" class="mt-3 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs rounded-lg transition-colors">
+                🔧 Tentar Corrigir Automaticamente
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      const mappingFields = document.getElementById('mapping-fields');
+      if (mappingFields) {
+        mappingFields.insertAdjacentHTML('afterbegin', errorHtml);
+      }
+    }
+
+    function autoFixDataErrors() {
+      // Corrigir automaticamente erros comuns nos dados
+      const loteIndex = fileColumns.indexOf(columnMapping['lote']);
+      
+      if (loteIndex !== -1) {
+        uploadedData = uploadedData.map(row => {
+          // Tentar corrigir lote
+          if (row[loteIndex] !== null && row[loteIndex] !== undefined) {
+            const loteStr = String(row[loteIndex]).trim();
+            // Remover caracteres não numéricos e tentar extrair número
+            const loteNum = parseInt(loteStr.replace(/\D/g, ''), 10);
+            if (!isNaN(loteNum) && loteNum > 0) {
+              row[loteIndex] = loteNum;
+            }
+          }
+          return row;
+        }).filter(row => {
+          // Remover linhas sem lote válido
+          const loteValue = row[loteIndex];
+          return loteValue !== null && loteValue !== undefined && !isNaN(parseInt(loteValue));
+        });
+        
+        showToast(`Dados corrigidos! ${uploadedData.length} linha(s) válida(s) restante(s).`, 'success');
+        renderMappingStep();
+      }
     }
 
     function renderPreview() {
@@ -5124,13 +5585,31 @@
         closeImportModal();
         return;
       }
+      
+      try {
         const fields = Object.keys(fieldLabels);
         
         const loteColumn = columnMapping['lote'];
         if (!loteColumn) {
-          alert('Por favor, mapeie a coluna "Lote" para que os cursos sejam separados corretamente.');
+          showToast('Por favor, mapeie a coluna "Lote" para que os cursos sejam separados corretamente.', 'error');
           backToStep2();
           return;
+        }
+        
+        // Validar dados antes de importar
+        const validationErrors = validateImportedData();
+        if (validationErrors.length > 0 && validationErrors.length < uploadedData.length) {
+          // Se houver erros mas ainda há dados válidos, perguntar se quer corrigir
+          const shouldFix = confirm(`Foram encontrados ${validationErrors.length} erro(s) nos dados.\n\nDeseja corrigir automaticamente?`);
+          if (shouldFix) {
+            autoFixDataErrors();
+            // Re-validar após correção
+            const newErrors = validateImportedData();
+            if (newErrors.length > 0 && newErrors.length >= uploadedData.length) {
+              showToast('Não foi possível corrigir todos os erros. Verifique a planilha.', 'error');
+              return;
+            }
+          }
         }
         
         // Get additional columns to include
@@ -5174,20 +5653,58 @@
             } else {
               value = 'Pendente';
             }
-          } else if (field === 'cozinha') {
+          } else if (field === 'cozinha' || field === 'turno' || field === 'endereco' || field === 'instrutor' || field === 'albumLink' || field === 'instrumentaisLink') {
             value = value !== null && value !== '' && value !== undefined ? String(value).trim() : null;
           } else if (field === 'dataInicio' || field === 'dataFim') {
             if (value && typeof value === 'number') {
               // Excel date serial number
-              const date = new Date((value - 25569) * 86400 * 1000);
-              value = date.toISOString().split('T')[0];
+              try {
+                const date = new Date((value - 25569) * 86400 * 1000);
+                if (!isNaN(date.getTime())) {
+                  value = date.toISOString().split('T')[0];
+                } else {
+                  value = null;
+                }
+              } catch (e) {
+                value = null;
+              }
             } else if (value && typeof value === 'string') {
-              // Try to parse date string
-              const parsed = new Date(value);
+              // Tentar múltiplos formatos de data
+              const dateFormats = [
+                /^(\d{2})\/(\d{2})\/(\d{4})$/,  // DD/MM/YYYY
+                /^(\d{4})-(\d{2})-(\d{2})$/,      // YYYY-MM-DD
+                /^(\d{2})-(\d{2})-(\d{4})$/,     // DD-MM-YYYY
+              ];
+              
+              let parsed = null;
+              for (const format of dateFormats) {
+                const match = value.trim().match(format);
+                if (match) {
+                  if (format === dateFormats[0]) {
+                    // DD/MM/YYYY
+                    parsed = new Date(`${match[3]}-${match[2]}-${match[1]}`);
+                  } else if (format === dateFormats[1]) {
+                    // YYYY-MM-DD
+                    parsed = new Date(value);
+                  } else if (format === dateFormats[2]) {
+                    // DD-MM-YYYY
+                    parsed = new Date(`${match[3]}-${match[2]}-${match[1]}`);
+                  }
+                  break;
+                }
+              }
+              
+              if (!parsed) {
+                parsed = new Date(value);
+              }
+              
               value = !isNaN(parsed.getTime()) ? parsed.toISOString().split('T')[0] : null;
             } else {
               value = null;
             }
+          } else if (field === 'municipio' || field === 'tipologia') {
+            // Campos de texto obrigatórios
+            value = value !== null && value !== undefined ? String(value).trim() : '';
           } else {
             value = value !== null && value !== undefined ? String(value).trim() : '';
           }
@@ -5206,35 +5723,48 @@
           return course;
         });
 
-      const validCourses = newCourses.filter(c => c.lote !== null && c.lote > 0);
-      const invalidCount = newCourses.length - validCourses.length;
-      
-      if (validCourses.length === 0) {
-        alert('Nenhum curso possui um número de lote válido. Verifique se a coluna "Lote" está mapeada corretamente e contém números válidos.');
-        return;
-      }
+        const validCourses = newCourses.filter(c => c.lote !== null && c.lote > 0);
+        const invalidCount = newCourses.length - validCourses.length;
+        
+        if (validCourses.length === 0) {
+          showToast('Nenhum curso possui um número de lote válido. Verifique se a coluna "Lote" está mapeada corretamente.', 'error');
+          backToStep2();
+          return;
+        }
 
-      courses = [...courses, ...validCourses];
-      filteredCourses = [...courses];
-      
-      // Log da ação
-      logAction('Importação de Planilha', {
-        totalRows: uploadedData.length,
-        validCourses: validCourses.length,
-        invalidCount: invalidCount,
-        lots: [...new Set(validCourses.map(c => c.lote))].sort((a, b) => a - b)
-      });
-      
-      saveToStorage();
-      updateFilters();
-      renderAll();
-      closeImportModal();
-      
-      let message = `${validCourses.length} cursos importados com sucesso!`;
-      if (invalidCount > 0) {
-        message += `\n\n${invalidCount} curso(s) foram ignorados por não terem um lote válido.`;
+        courses = [...courses, ...validCourses];
+        filteredCourses = [...courses];
+        
+        // Log da ação
+        logAction('Importação de Planilha', {
+          totalRows: uploadedData.length,
+          validCourses: validCourses.length,
+          invalidCount: invalidCount,
+          lots: [...new Set(validCourses.map(c => c.lote))].sort((a, b) => a - b)
+        });
+        
+        saveToStorage();
+        updateFilters();
+        renderAll();
+        closeImportModal();
+        
+        let message = `${validCourses.length} curso(s) importado(s) com sucesso!`;
+        if (invalidCount > 0) {
+          message += ` ${invalidCount} curso(s) foram ignorados por não terem um lote válido.`;
+        }
+        showToast(message, invalidCount > 0 ? 'warning' : 'success', 5000);
+      } catch (error) {
+        console.error('Erro ao importar planilha:', error);
+        showToast('Erro ao importar planilha. Verifique o console para mais detalhes.', 'error');
+        
+        // Tentar correção automática
+        try {
+          showToast('Tentando corrigir automaticamente...', 'info');
+          autoFixDataErrors();
+        } catch (fixError) {
+          console.error('Erro na correção automática:', fixError);
+        }
       }
-      alert(message);
     }
 
     // Responsibles Modal Functions
@@ -7869,21 +8399,6 @@
         }
       });
 
-      // Cursos sem responsável
-      const lotResponsibles = window.lotResponsibles || {};
-      courses.filter(c => !lotResponsibles[c.lote] || lotResponsibles[c.lote].length === 0).forEach(course => {
-        notifications.push({
-          id: `notif-${course.id}-sem-responsavel`,
-          type: 'course-no-responsible',
-          courseId: course.id,
-          courseIdCurso: course.idCurso || '-',
-          courseName: course.tipologia,
-          message: `Curso sem responsável atribuído. Lote ${course.lote} precisa de um responsável.`,
-          action: 'assign-responsible',
-          priority: 'medium'
-        });
-      });
-
       const allItems = [...calendarEvents, ...calendarTasks];
       allItems.forEach(item => {
         const itemDate = new Date(item.date);
@@ -9407,3 +9922,4 @@
   </script>
 </body>
 </html>
+
